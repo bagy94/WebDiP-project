@@ -8,5 +8,4 @@
 require_once "routes.php";
 require_once "connection.php";
 require_once "utility/Session.php";
-
-
+?>
