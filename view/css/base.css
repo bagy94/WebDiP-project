@@ -1,0 +1,141 @@
+/**
+ * Created by PhpStorm.
+ * User: bagy
+ * Date: 4.5.2017.
+ * Time: 23:47
+ */
+
+/**Page*/
+html {
+    background-image: url("../asset/background.jpg");
+    background-repeat: no-repeat;
+}
+
+body {
+    margin: 0px;
+    width: 100%;
+    text-align: center;
+    font-family: "Times New Roman";
+}
+
+
+.verticalAlignHelper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+/*Header*/
+
+header {
+    padding-left: 10px;
+    padding-right: 10px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: #282847;
+    text-align: center;
+    color: white;
+    display: flex;
+    justify-content: space-around;
+}
+
+header > * {
+    display: inline-block;
+}
+
+/*Footer*/
+
+footer {
+    position: fixed;
+    padding-left: 10px;
+    padding-right: 10px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #282847;
+    text-align: center;
+    color: white;
+}
+
+footer a {
+    text-decoration: none;
+    color: white;
+}
+header,footer{
+    min-height: 40px;
+
+}
+
+/**Menu*/
+nav.menu>ul{
+    list-style-type: none;
+    display: inline-block;
+}
+
+nav.menu>ul>li {
+    display: inline-block;
+    background-color: #564E7A;
+    /* color: white; */
+    padding: 5px;
+    box-shadow: -3px 1px 14px 2px #3A3060;
+    margin-left: auto;
+    margin-right: auto;
+}
+nav.menu>ul>li>a {
+    text-decoration: none;
+    color: white;
+}
+.menu-span{
+    width: 3%;
+}
+
+
+@media screen and (min-width: 1024px) {
+    nav.menu{
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+
+@media screen and (max-width: 480px) {
+    footer a {
+        display: block;
+    }
+}
+
+
+/**Errors*/
+.input-error {
+    top: 0px;
+    right: 0px;
+}
+
+.err-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 55%;
+    border-bottom: solid 1px red;
+    border-right: solid 1px red;
+    border-left: solid 1px red;
+}
+
+div.err-wrapper > * {
+    width: 100%;
+    display: block;
+}
+
+.input-error-icon {
+    display: inline;
+    vertical-align: top;
+}
+
+.input-error {
+    border-bottom: 1px solid #D04C00;
+    text-align: center;
+    color: white;
+    background-color: black;
+}
