@@ -8,14 +8,24 @@
 
 namespace bagy94\webdip\wellness\utility;
 
+spl_autoload_register(function ($className){
+    require_once "controller/$className.php";
+});
 
-class Route
+
+class Router
 {
+    private static $routes = [
+        'home'=>"HomeController",
+        'login'=>"LogInController",
+        'registration'=>"RegistrationController",
+        'about'=>"AboutController",
+        'doc'=>"DocumentationController"
+    ];
     const DIR_ROOT = "WebDiP2016x005";
-    const PARAM_GET_CONTROLLER = "controller";
-    const PARAM_GET_ACTION = "action";
+    const ROUTE = "req";
 
-    public static function make($controller,$action){
+    public static function make($controller,$action,$args = NULL){
         $urlArrray = explode("/",$_SERVER["REQUEST_URI"]);
         $url = implode(
             "/",
@@ -29,27 +39,35 @@ class Route
                 +1)
         );
         if( isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on' ){
-            return sprintf("https://%s/?%s",
-                $_SERVER["HTTP_HOST"].$url,
+            return sprintf("?%s",
                 http_build_query([
-                    self::PARAM_GET_CONTROLLER=>$controller,
-                    self::PARAM_GET_ACTION =>$action
+                    self::DIR_ROOT=>implode("/", [$controller, $action, http_build_query($args)]
+                    ),
                 ]));
         }else{
             return sprintf("http://%s/%s/%s",
                 $_SERVER["HTTP_HOST"].$url,
                 $controller,
-                $action);
+                $action,
+                http_build_query($args));
 
         }
-    }
-    public static function decodeURL($route){
-        return explode("/",$route);
     }
     public static function reqHTTPS(){
         if( isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on' ){
             header("Location: https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
             exit();
         }
+    }
+
+    public static function redirect($route)
+    {
+        $request = explode("/",$route);
+        if(isset($route[0]) && array_key_exists($route[0],self::$routes)){
+            $controller = new self::$routes[$route[0]]();
+        }else{
+            $controller = new ErrorController();
+        }
+
     }
 }
