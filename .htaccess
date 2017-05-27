@@ -1,0 +1,12 @@
+RewriteEngine On
+
+RewriteBase /WebDiP/2016_projekti/WebDiP2016x005/
+
+##RewriteCond %{HTTPS} !=on
+##RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{REQUEST_URI} !^.*\.(jpg|css|js|gif|png|ico|pdf|)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^(.*)$ index.php?req=$1 [QSA]
