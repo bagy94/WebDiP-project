@@ -21,6 +21,7 @@ class Router
 
     public static function make($controller,$action,$args = NULL){
         $urlArrray = explode("/",$_SERVER["REQUEST_URI"]);
+        $param = is_null($args)?"":"?".http_build_query($args);
         $url = implode(
             "/",
             array_slice(
@@ -35,16 +36,16 @@ class Router
         if( isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on' ){
             return sprintf("?%s",
                 http_build_query([
-                    self::DIR_ROOT=>implode("/", [$controller, $action, http_build_query($args)]
+                    self::ROUTE=>implode("/", [$controller, $action, $param]
                     ),
                 ]));
         }else{
-            return sprintf("http://%s/%s/%s",
+            $url =  sprintf("http://%s/%s/%s",
                 $_SERVER["HTTP_HOST"].$url,
                 $controller,
                 $action,
-                http_build_query($args));
-
+                $param);
+            return $url;
         }
     }
     public static function reqHTTPS(){
@@ -74,5 +75,15 @@ class Router
                 'args'=>"404 Page not found"
             ];
         }
+    }
+
+    public static function js($filename)
+    {
+
+    }
+
+    public static function css($filename)
+    {
+
     }
 }

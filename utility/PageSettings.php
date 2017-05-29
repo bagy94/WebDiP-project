@@ -13,6 +13,14 @@ use bagy94\utility\Router;
 class PageSettings
 {
     public $menu=array();
+    public $css =array();
+    public $js = array();
+
+    function __construct()
+    {
+        $this->css["base"]=Router::css("base");
+        $this->js["base"] = Router::js("base");
+    }
 
     public function createMenu()
     {
@@ -34,5 +42,8 @@ class PageSettings
 
     function toJson(){
 
+    }
+    function isCreatedMenu(){
+        return count($this->menu);
     }
 }

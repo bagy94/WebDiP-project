@@ -55,7 +55,7 @@ class WebPage
         $this->temp = $temp;
         $this->title = $title;
         $this->keywords = $keywords;
-        $this->settings = $settings;
+        $this->settings = is_null($settings)?new PageSettings():$settings;
     }
 
 
@@ -96,6 +96,9 @@ class WebPage
     public function init(){
         $this->assign(self::VAR_TITLE,$this->title);
         $this->assign(self::VAR_KEYWORDS,isset($this->keywords)?$this->keywords:"");
+        if(!$this->settings->isCreatedMenu()){
+            $this->settings->createMenu();
+        }
         $this->assign(self::ARR_MENU,$this->settings->menu);
         self::smarty()->display(self::HEADER_PATH);
     }
