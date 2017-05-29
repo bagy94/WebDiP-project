@@ -1,2 +1,4 @@
-# WebDiP-project
-Final work for collage class
+# WebDiP-Wellness
+### HTML,CSS,JS,PHP
+
+Final project on University class.
