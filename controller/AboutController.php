@@ -6,7 +6,7 @@
  * Time: 16:45
  */
 
-namespace bagy94\webdip\wellness\controller;
+namespace bagy94\controller;
 
 
 class AboutController extends Controller

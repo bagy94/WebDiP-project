@@ -6,7 +6,7 @@
  * Time: 1:29
  */
 
-namespace bagy94\webdip\wellness\model;
+namespace bagy94\model;
 require_once "MetaModel.php";
 require_once "IModel.php";
 

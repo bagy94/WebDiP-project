@@ -6,22 +6,16 @@
  * Time: 19:06
  */
 
-namespace bagy94\webdip\wellness\utility;
-
-spl_autoload_register(function ($className){
-    require_once "controller/$className.php";
-});
-
-
+namespace bagy94\utility;
 class Router
 {
-    private static $routes = [
-        'home'=>"HomeController",
-        'login'=>"LogInController",
-        'registration'=>"RegistrationController",
-        'about'=>"AboutController",
-        'doc'=>"DocumentationController"
-    ];
+    public static $controllers = array(
+        'home',
+        'login',
+        'registration',
+        'about',
+        'doc'
+    );
     const DIR_ROOT = "WebDiP2016x005";
     const ROUTE = "req";
 
@@ -60,14 +54,25 @@ class Router
         }
     }
 
-    public static function redirect($route)
+    public static function decode($route)
     {
         $request = explode("/",$route);
-        if(isset($route[0]) && array_key_exists($route[0],self::$routes)){
-            $controller = new self::$routes[$route[0]]();
+        //print_r($request);
+        $key = isset($request[0])?$request[0]:"error";
+        $action = isset($request[1])?$request[1]:"index";
+        $args = isset($request[2])?$request[2]:NULL;
+        if(in_array($key,self::$controllers)){
+            return [
+                'controller'=>$key,
+                'action'=>$action,
+                'args'=>$args
+            ];
         }else{
-            $controller = new ErrorController();
+            return [
+                'controller'=>NULL,
+                'action'=>NULL,
+                'args'=>"404 Page not found"
+            ];
         }
-
     }
 }

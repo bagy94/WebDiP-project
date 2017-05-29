@@ -6,7 +6,7 @@
  * Time: 23:29
  */
 
-namespace bagy94\webdip\wellness\model;
+namespace bagy94\model;
 
 
 interface IModel

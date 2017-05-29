@@ -6,7 +6,7 @@
  * Time: 19:23
  */
 
-namespace bagy94\webdip\wellness\utility\db;
+namespace bagy94\utility\db;
 require_once "DbResult.php";
 
 use bagy94\webdip\wellness\utility\db\DbResult;

@@ -6,14 +6,14 @@
  * Time: 23:36
  */
 
-namespace bagy94\webdip\wellness\controller;
+namespace bagy94\controller;
 
 require_once "Controller.php";
 require_once "model/ServiceCategory.php";
 
-use bagy94\webdip\wellness\model\ServiceCategory;
-use bagy94\webdip\wellness\model\User;
-
+use bagy94\model\ServiceCategory;
+use bagy94\utility\PageSettings;
+use bagy94\utility\WebPage;
 class HomeController extends Controller
 {
     public static $CONTROLLER = "home";
@@ -27,12 +27,15 @@ class HomeController extends Controller
 
     function index()
     {
-        $categoryList = "";
+        $categoryList = [];
         $stm = ServiceCategory::getAll(array(ServiceCategory::$tId,ServiceCategory::$tName),"deleted=0");
         while (list($id,$name)=$stm->fetch()){
-            $categoryList .="<option value='$id'>$name</option>";
+            $categoryList[$id]=$name;
         }
-        require_once("view/index_layout.php");
+        $ps = new PageSettings();
+        $page = new WebPage("view/index.tpl","Početna","index",$ps);
+        $page->assign("items",$categoryList);
+        $page->show();
     }
 
     /**

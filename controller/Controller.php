@@ -7,14 +7,9 @@
  */
 
 
-namespace bagy94\webdip\wellness\controller;
-
-spl_autoload_register(function($classname){
-    require_once "utility/$classname.php";
-});
-spl_autoload_register(function($class){
-    require_once "model/$class.php";
-});
+namespace bagy94\controller;
+require_once "utility/WebPage.php";
+use bagy94\utility\WebPage;
 
 abstract  class Controller
 {
@@ -32,7 +27,12 @@ abstract  class Controller
      ***/
     public static $CONTROLLER;
 
-    private $smarty;
+    /***
+     * Instance of smarty.
+     * Access it over getter
+     * @var Smarty $smarty
+     */
+    private static $smarty;
 
 
     /**
@@ -60,9 +60,7 @@ abstract  class Controller
         return (is_array($this->actions) && in_array($action,$this->actions)) || in_array($action,self::$baseActions);
     }
 
-    function createMenu(){
 
-    }
 
 
     /**

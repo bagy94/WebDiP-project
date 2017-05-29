@@ -6,7 +6,7 @@
  * Time: 17:50
  */
 
-namespace bagy94\webdip\wellness\model;
+namespace bagy94\model;
 require_once "Model.php";
 
 class ServiceCategory extends Model

@@ -6,7 +6,7 @@
  * Time: 22:17
  */
 
-namespace bagy94\webdip\wellness\utility\db;
+namespace bagy94\utility\db;
 
 
 class DbResult

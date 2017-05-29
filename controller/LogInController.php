@@ -6,7 +6,7 @@
  * Time: 23:57
  */
 
-namespace bagy94\webdip\wellness\controller;
+namespace bagy94\controller;
 require_once "Controller.php";
 
 class LogInController extends Controller
@@ -20,7 +20,7 @@ class LogInController extends Controller
 
     function index()
     {
-       $form = new BaseLogInForm();
+       echo "HI";
 
        require_once "view/login_layout.php";
 

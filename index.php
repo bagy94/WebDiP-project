@@ -5,15 +5,15 @@
  * Date: 22.4.2017.
  * Time: 16:28
  */
-use bagy94\webdip\wellness\utility\Router;
 
+namespace bagy94;
 require_once "application.php";
+use bagy94\utility\Router;
+
 if(isset($_GET[Router::ROUTE])){
     $route = filter_input(INPUT_GET,Router::ROUTE,FILTER_SANITIZE_URL);
 }else{
-    $route = "error/index/?msg=404+Page+not+found";
+    $route = "home/index";
 }
-Router::redirect($route);
-?>
-
-}
+$request = Router::decode($route);
+callController($request['controller'],$request['action'],$request['args']);

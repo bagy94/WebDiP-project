@@ -6,7 +6,7 @@
  * Time: 23:56
  */
 
-namespace bagy94\webdip\wellness\controller;
+namespace bagy94\controller;
 require_once "Controller.php";
 
 

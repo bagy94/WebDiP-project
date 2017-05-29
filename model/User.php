@@ -1,6 +1,6 @@
 <?php
 
-namespace bagy94\webdip\wellness\model;
+namespace bagy94\model;
 require_once "Model.php";
 
 /**

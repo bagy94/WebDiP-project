@@ -1,9 +1,9 @@
 <?php
-namespace bagy94\webdip\wellness\model;
+namespace bagy94\model;
 
 require_once "connection.php";
 
-use bagy94\webdip\wellness\utility\db\Db as DbConnection;
+use bagy94\utility\db\Db as DbConnection;
 /**
  * Created by PhpStorm.
  * User: bagy
