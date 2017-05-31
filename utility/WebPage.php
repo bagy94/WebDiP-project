@@ -87,6 +87,7 @@ class WebPage
     {
         if (!isset(self::$smarty)){
             self::$smarty = new Smarty();
+            //self::$smarty->caching = true;
         }
         return self::$smarty;
     }
@@ -102,14 +103,14 @@ class WebPage
             $this->settings->createMenu();
         }
         self::smarty()->assignByRef(self::OBJ_SETTINGS,$this->settings);
-        self::smarty()->display(self::HEADER_PATH);
+        return self::smarty()->fetch(self::HEADER_PATH);
     }
 
     /**
      * Display _footer.tpl which close body and html tags
      */
     public function end(){
-        self::smarty()->display(self::FOOTER_PATH);
+        return self::smarty()->fetch(self::FOOTER_PATH);
     }
 
 
@@ -119,7 +120,8 @@ class WebPage
         $template = is_array($this->temp) && isset($this->temp[$templateIndex])?
             $this->temp[$templateIndex]:
             $this->temp;
-        self::smarty()->display($template);
+
+        return self::smarty()->fetch($template);
         //self::smarty()->display(self::FOOTER_PATH);
     }
 
@@ -128,11 +130,12 @@ class WebPage
      * Display Content.
      * Close HTML tags.
      */
-    public function show($templIndex=0)
+    public function showHTML($templIndex=0)
     {
-        $this->init();
-        $this->displayContent($templIndex);
-        $this->end();
+        $foo = $this->init();
+        $foo .= $this->displayContent($templIndex);
+        $foo .= $this->end();
+        print_r($foo);
     }
 
     /**
@@ -192,6 +195,11 @@ class WebPage
         return $this->settings;
     }
 
-
+    public function getHTML($templIndex=0){
+        $foo = $this->init();
+        $foo .= $this->displayContent($templIndex);
+        $foo .= $this->end();
+        return $foo;
+    }
 
 }

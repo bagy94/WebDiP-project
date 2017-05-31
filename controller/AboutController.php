@@ -25,6 +25,6 @@ class AboutController extends Controller
     function index()
     {
         $this->pageAdapter->getSettings()->addAsset(Router::asset("me","jpg"),"me");
-        $this->pageAdapter->show();
+        return $this->render($this->pageAdapter->getHTML());
     }
 }

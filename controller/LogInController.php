@@ -37,7 +37,7 @@ class LogInController extends Controller
     {
         Router::reqHTTPS(self::$KEY,$this->actions[0]);
         $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
-        $this->pageAdapter->show();
+        return $this->render($this->pageAdapter->getHTML());
     }
 
     /**
@@ -54,7 +54,7 @@ class LogInController extends Controller
 
         }
 
-        $this->pageAdapter->show(1);
+        return $this->render($this->pageAdapter->getHTML(1));
     }
     function postCode(){
 

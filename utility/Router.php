@@ -11,6 +11,7 @@ class Router
 {
     const DIR_ROOT = "WebDiP2016x005";
     const ROUTE = "req";
+    const SERVICE = "service";
 
     private $reqParts=[];
     private $path=NULL;
@@ -59,7 +60,7 @@ class Router
                 ),$HTTPS)
             :
             $this->buildLink(
-                sprintf("%s/%s/%s", $controller, $action, $params),
+                sprintf("%s/%s%s", $controller, $action, $params),
                 $HTTPS);
     }
 
@@ -116,16 +117,20 @@ class Router
 
     public static function js($filename)
     {
-        return isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on'?
+        $url =  isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on'?
             self::buildRoute("view/js/$filename.js",TRUE):
             self::buildRoute("view/js/$filename.js");
+        //echo $url;
+        return $url;
     }
 
     public static function css($filename)
     {
-        return isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on'?
+        //echo  isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on';
+        $url =  isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on'?
             self::buildRoute("view/css/$filename.css",TRUE):
             self::buildRoute("view/css/$filename.css");
+        return $url;
     }
 
     public static function asset($filename,$ext="png")

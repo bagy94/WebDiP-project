@@ -36,6 +36,7 @@ use bagy94\controller\HomeController;
 use bagy94\controller\LogInController;
 use bagy94\controller\RegistrationController;
 use bagy94\utility\WebPage;
+use bagy94\utility\Response;
 $errorPage = new WebPage("view/error.tpl","Greška");
 
 
@@ -63,14 +64,14 @@ function callController($controller,$action,$args=NULL){
             return;
     }
     if($active->hasAction($action)){
-        $active->invoke($action,NULL);
+        return $active->invoke($action,NULL);
     }else{
-        showError("420 Action not found");
+        return showError("420 Action not found");
     }
 }
 
 function showError($message){
     global $errorPage;
     $errorPage->assign("message",$message);
-    $errorPage->show();
+    return new Response($errorPage->response());
 }

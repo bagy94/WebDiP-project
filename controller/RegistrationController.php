@@ -20,7 +20,7 @@ class RegistrationController extends Controller
     const RECAPTCHA_PUBLIC = "6Lfv5B4TAAAAAFcbKtuJkDlXQbt3JZylci6rjSK7";
     private static $RECAPTCHA_SECRET = "6Lfv5B4TAAAAAPBdFjZlwdpmsTCYqgYG8bTglypR";
 
-    public static $CONTROLLER = "registration";
+    public static $KEY = "registration";
     protected $actions = [
         "index","postSubmit"
     ];
@@ -43,7 +43,7 @@ class RegistrationController extends Controller
         $ps = new PageSettings();
         $ps->addJS("https://www.google.com/recaptcha/api.js");
         $this->pageAdapter->setSettings($ps);
-        $this->pageAdapter->show();
+        return $this->render($this->pageAdapter->getHTML());
 
     }
 

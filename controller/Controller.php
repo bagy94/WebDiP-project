@@ -9,11 +9,16 @@
 
 namespace bagy94\controller;
 require_once "utility/WebPage.php";
+require_once "IController.php";
+use bagy94\utility\Response;
 use bagy94\utility\Router;
 use bagy94\utility\WebPage;
+use SimpleXMLElement;
 
 abstract  class Controller implements IController
 {
+    const RESPONSE_JSON = "json";
+    const RESPONSE_XML = "xml";
     /***
      * String used for url rewrite
      * Implement it in child
@@ -60,7 +65,7 @@ abstract  class Controller implements IController
      */
     function invoke($action, $args = NULL)
     {
-        $this->{$action}($args);
+        return $this->{$action}($args);
     }
 
     /**
@@ -79,9 +84,23 @@ abstract  class Controller implements IController
         array_push($this->actions,$action);
     }
 
+    /**
+     * Function used for create controller's form action
+     * @param int $actionIndex
+     * @return string
+     */
     protected function formAction($actionIndex){
         $controller = get_called_class();
         $key = $controller::$KEY;
         return sprintf("?%s=%s/%s",Router::ROUTE,$key,$this->actions[$actionIndex]);
+    }
+
+    /**
+     * @param mixed $data
+     * @param string $responseType
+     * @return Response
+     */
+    public function render($data, $responseType="HTML"){
+        return new Response($data,$responseType);
     }
 }

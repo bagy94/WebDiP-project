@@ -9,12 +9,15 @@
 namespace bagy94\controller;
 
 
+use bagy94\utility\Response;
+
 interface IController
 {
     /**
      * Invoke object action.
      * @param callable $action
      * @param null|mixed $args
+     * @return Response
      */
     function invoke($action,$args=NULL);
     /**

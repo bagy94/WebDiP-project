@@ -25,6 +25,6 @@ class DocumentationController extends Controller
 
     function index(){
         $this->pageAdapter->getSettings()->addAsset(Router::asset("era"),"era");
-        $this->pageAdapter->show();
+        return $this->render($this->pageAdapter->getHTML());
     }
 }

@@ -16,7 +16,7 @@ class HomeController extends Controller
 {
     const VIEW_VAR_ITEMS = "items";
     public static $KEY = "home";
-    protected $actions = ["index"];
+    protected $actions = ["index","topService"];
     protected $templates = ["view/index.tpl"];
 
     function __construct()
@@ -32,6 +32,12 @@ class HomeController extends Controller
             $categoryList[$id]=$name;
         }
         $this->pageAdapter->assign(self::VIEW_VAR_ITEMS,$categoryList);
-        $this->pageAdapter->show();
+        return $this->render($this->pageAdapter->getHTML());
+    }
+
+    function topService(){
+        if(isset($_)){
+
+        }
     }
 }
