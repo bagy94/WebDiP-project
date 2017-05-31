@@ -9,21 +9,22 @@
 namespace bagy94\controller;
 
 
+use bagy94\utility\Router;
+
 class AboutController extends Controller
 {
-    public static $CONTROLLER = "about";
+    public static $KEY = "about";
+    protected $templates = ["view/about.tpl"];
+    protected $actions = ["index"];
+
+    function __construct()
+    {
+        parent::__construct("O autoru", "about");
+    }
 
     function index()
     {
-        // TODO: Implement index() method.
-    }
-
-    /**
-     * Function returns array of controller actions
-     * @return string[]
-     **/
-    function actions()
-    {
-        // TODO: Implement actions() method.
+        $this->pageAdapter->getSettings()->addAsset(Router::asset("me","jpg"),"me");
+        $this->pageAdapter->show();
     }
 }
