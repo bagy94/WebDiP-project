@@ -7,8 +7,6 @@
  */
 
 namespace bagy94\controller;
-
-require_once "Controller.php";
 require_once "model/ServiceCategory.php";
 
 use bagy94\model\ServiceCategory;
@@ -16,13 +14,14 @@ use bagy94\utility\PageSettings;
 use bagy94\utility\WebPage;
 class HomeController extends Controller
 {
-    public static $CONTROLLER = "home";
-    protected $actions = [];
+    const VIEW_VAR_ITEMS = "items";
+    public static $KEY = "home";
+    protected $actions = ["index"];
+    protected $templates = ["view/index.tpl"];
 
-    function error()
+    function __construct()
     {
-        $error = "Nije moguce ucitati pocetnu stranicu";
-        require_once("../view/error.php");
+        parent::__construct("Početna","pocetna index prva stranica");
     }
 
     function index()
@@ -32,18 +31,7 @@ class HomeController extends Controller
         while (list($id,$name)=$stm->fetch()){
             $categoryList[$id]=$name;
         }
-        $ps = new PageSettings();
-        $page = new WebPage("view/index.tpl","Početna","index",$ps);
-        $page->assign("items",$categoryList);
-        $page->show();
+        $this->pageAdapter->assign(self::VIEW_VAR_ITEMS,$categoryList);
+        $this->pageAdapter->show();
     }
-
-    /**
-     * @inheritDoc
-     */
-    function actions()
-    {
-        return array();
-    }
-
 }

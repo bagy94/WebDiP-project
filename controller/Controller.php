@@ -9,69 +9,79 @@
 
 namespace bagy94\controller;
 require_once "utility/WebPage.php";
+use bagy94\utility\Router;
 use bagy94\utility\WebPage;
 
-abstract  class Controller
+abstract  class Controller implements IController
 {
-    /*** array of base actions which must be implemented***/
-    public static $baseActions = ["index","error"];
-    /**
-     * Actions array.
-     * @var string[] $actions
-     **/
-    protected $actions;
-
     /***
-     * Controller name
-     * Must be inherited
-     ***/
-    public static $CONTROLLER;
-
-    /***
-     * Instance of smarty.
-     * Access it over getter
-     * @var Smarty $smarty
+     * String used for url rewrite
+     * Implement it in child
      */
-    private static $smarty;
+    public static $KEY;
 
+    /***
+     * Array of possible actions on object
+     * @var array $actions
+     */
+    protected $actions=[];
+    /***
+     * Array of possible templates in controller
+     * @var array $templates
+     */
+    protected $templates=[];
+
+    /***
+     * ViewAdapter
+     * @var WebPage $pageAdapter
+     */
+    protected $pageAdapter;
 
     /**
      * Controller constructor.
-     * Initialize array of actions based on actions() method
-     **/
-    function __construct()
+     * @param string $title
+     * @param string $keywords
+     */
+    function __construct($title, $keywords="page")
     {
-        $this->actions = $this->actions();
+        $this->pageAdapter = new WebPage($this->templates,$title,NULL,$keywords);
     }
 
+    /***
+     * @inheritdoc
+     */
+    function hasAction($action)
+    {
+        return is_array($this->actions) && in_array($action,$this->actions);
+    }
 
-    /*** Function to show error view*/
-    function error(){
-        $error = "Page not found";
-        require_once "../view/error.php";
+    /***
+     * @inheritdoc
+     */
+    function invoke($action, $args = NULL)
+    {
+        $this->{$action}($args);
     }
 
     /**
-     * Indicates if controller contains action in param
+     * Append template to template array
+     * @param string $templ
+     */
+    function addTemplate($templ){
+        array_push($this->templates,$templ);
+    }
+
+    /**
+     * ppend action to action array
      * @param $action
-     * @return bool
-     **/
-    function hasAction($action){
-        return (is_array($this->actions) && in_array($action,$this->actions)) || in_array($action,self::$baseActions);
+     */
+    function addAction($action){
+        array_push($this->actions,$action);
     }
 
-
-
-
-    /**
-     * Function used as base action of controller
-     * @return void
-     **/
-    abstract function index();
-
-    /**
-     * Function returns array of controller actions
-     * @return string[]
-     **/
-    abstract function actions();
+    protected function formAction($actionIndex){
+        $controller = get_called_class();
+        $key = $controller::$KEY;
+        return sprintf("?%s=%s/%s",Router::ROUTE,$key,$this->actions[$actionIndex]);
+    }
 }

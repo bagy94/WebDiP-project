@@ -11,12 +11,14 @@ require_once "Session.php";
 
 class UserSession
 {
-    CONST ADMINISTRATOR = 1;
-    const MODERATOR = 2;
-    const REGULAR = 3;
+    CONST ADMINISTRATOR = "1";
+    const MODERATOR ="2";
+    const REGULAR = "3";
     const KEY_USER_ID = "user_id";
     const KEY_USER_TYPE = "type_id";
-
+    /***
+     * @var Session $session
+     */
     private static $session;
 
     private function __construct()
@@ -24,6 +26,11 @@ class UserSession
 
     }
 
+    /**
+     * Get instance of session.
+     * It will create only one object
+     * @return Session
+     */
     private static function session(){
         if(!isset(self::$session)){
             self::$session = new Session();
