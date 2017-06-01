@@ -1,5 +1,6 @@
 
 <!DOCTYPE html>
+<html>
 <head>
     <title>{$title}</title>
     <meta charset="UTF-8">
@@ -17,15 +18,15 @@
     {/foreach}
 
 </head>
-<body>
-    <header style="{$ps->theme.header.bgColor}">
+<body style="background-image: {$ps->theme.body.background_image}">
+    <header style="background-color: {$ps->theme.header.background_color}">
         <h1>{$title}</h1>
     </header>
     <div class="page">
         <nav class="menu">
             <ul>
                 {foreach from=$ps->links.menu key=k item=v}
-                    <li><a href="{$v}">{$k}</a></li>
+                    <li style="background-color:{$ps->theme.menu.li.background_color};box-shadow: {$ps->theme.menu.li.box_shadow};"><a href="{$v}" style="color: {$ps->theme.menu.a.color}">{$k}</a></li>
                 {/foreach}
             </ul>
         </nav>

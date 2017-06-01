@@ -47,4 +47,8 @@ class DbResult
         return (isset($this->dataSet) && is_array($this->dataSet) && count($this->dataSet)) || is_numeric($this->dataSet);
     }
 
+    public function appendRow($row){
+        array_push($this->dataSet,$row);
+    }
+
 }

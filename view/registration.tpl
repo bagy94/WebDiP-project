@@ -1,4 +1,4 @@
-<section class="content" style="opacity: 0.9">
+<section class="content form-box">
     <form action="{$formAction}" method="POST">
         <div class="form-inline-element-wrapper">
             <label for="inputName">Ime</label>

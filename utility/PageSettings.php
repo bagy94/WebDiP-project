@@ -14,8 +14,7 @@ use bagy94\utility\Router;
 class PageSettings
 {
     const HEADER = "header";
-    const FOOTER = "footer";
-    const PROP_BG_COLOR = "bgColor";
+    const HTML = "html";
     const LINKS_MENU = "menu";
     const LINKS_JS = "js";
     const LINKS_CSS = "css";
@@ -27,22 +26,38 @@ class PageSettings
         self::LINKS_JS=>[],
         self::LINKS_ASSET=>[]
     ];
+
+    public $footer=[];
+
     public $icon;
-    public $theme = [
+    public $theme;/*[
         self::HEADER =>[
-            self::PROP_BG_COLOR=>"background:#282847"
+            "background_color"=>"rgb(65, 4, 103);"
         ],
-        self::FOOTER=>[
-            self::PROP_BG_COLOR=>"#282847"
-        ]
-    ];
+        self::HTML=>[
+            "background_image"=>""
+        ],
+        "section"=>[
+            "background_color"=>"rgba(127, 72, 154, 0.46)",
+            "opacity"=>"0.65"
+        ],
+        "li"=>[
+            "background_color"=>"rgba(127, 72, 154, 0.46)",
+            "shadow_color"=>"#b4a2bb",
+            "text_color"=>"black"
+        ],
+        "font"=>"\"Times New Roman\"",
+        "footer"=>"rgb(65, 4, 103)"
+    ];*/
 
 
-    function __construct()
+    function __construct($jsonTheme=NULL)
     {
         $this->addCssLocal("base");
         $this->addJsLocal("base");
         $this->icon = Router::asset("icon");
+        $this->theme = is_null($jsonTheme)?ThemeAdapter::defaultTheme():ThemeAdapter::parseJSON($jsonTheme);
+        $this->initFooter();
     }
 
     /**
@@ -59,8 +74,6 @@ class PageSettings
                 $this->addMenuLink("Početna", Router::make("home", "index"));
                 $this->addMenuLink("Prijava", Router::make("login", "index"));
                 $this->addMenuLink("Registracija", Router::make("registration", "index"));
-                $this->addMenuLink("Dokumentacija", Router::make("doc", "index"));
-                $this->addMenuLink("O autoru", Router::make("about", "index"));
         }
     }
 
@@ -127,9 +140,17 @@ class PageSettings
         }
     }
 
+    public function backgroundImage($imageName,$extension="jpg")
+    {
+        return "url(".Router::asset($imageName,$extension).")";
+    }
 
+    public function parseTheme($jsonTheme){
 
-    public function applySettings($dbJSONSettings){
+    }
 
+    public function initFooter(){
+        $this->footer["Dokumentacija"] =Router::make("doc", "index");
+        $this->footer["O autoru"] =  Router::make("about", "index");
     }
 }

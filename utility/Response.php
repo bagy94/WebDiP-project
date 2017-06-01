@@ -29,7 +29,7 @@ class Response
     }
     public function asXML(){
         header("Content-type: application/xml");
-        print_r($this->content);
+        print_r($this->content->asXML());
     }
     public function asJSON(){
         header("Content-type: application/json");

@@ -53,22 +53,16 @@ function isPDF(file){
     return file.name.split(".").last() === "pdf";
 }
 
-function getXml(data,handlerSucces,handlerError,url,method){
-    var m = method ==="undefind"?"GET":method.toUpperCase()==="GET"?"GET":"POST";
+function getXml(data,handler,url,method){
+    var m = method ==="undefind"?"POST":method.toUpperCase();
+    var path = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req="+url;
     $.ajax({
-        url: url,
+        url: path,
         type: m,
         data:data,
         dataType:"xml",
         success:function(res){
-            var success = $(res).children().attr('success');
-            if(success ==="1"){
-                var d = $(res).children();
-                handlerSucces(d);
-            }else{
-                handlerError(res);
-            }
-
+            handler(res);
         }
     });
 }

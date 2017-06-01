@@ -1,7 +1,7 @@
 <?php
 namespace bagy94\model;
 
-require_once "connection.php";
+require_once "db/Db.php";
 
 use bagy94\utility\db\Db as DbConnection;
 /**
@@ -20,12 +20,8 @@ abstract class MetaModel extends DbConnection
      * REGEX_TAGS-cover all tags on object
     */
     const REGEX_COLUMNS = "/^(t[A-Z]{1}[a-zA-z\_]+|t{1})$/";
-    const REGEX_TAGS = "/^TAG_[A-Z\_0-9]+$/";
-
 
     protected $data;
-
-
 
     /*** @return mixed */
     public function get($column)
@@ -69,30 +65,6 @@ abstract class MetaModel extends DbConnection
         return $this->data;
     }
 
-    /**
-     * @param SimpleXMLElement $root
-     * @param array $includeColumns
-     */
-    public function toXML($root, $includeColumns=array()){
-        $arr = $this->tags();
-        if(count($includeColumns)===0){
-            $includeColumns = $this->columns();
-        }
-        foreach ($includeColumns as $col){
-            if($this->data[$col] instanceof MetaModel){
-                $child = $root->addChild(get_class($this->data[$col]));
-                $this->data[$col]->toXML($child);
-
-            }else{
-                if(is_string($this->data[$col]) || is_numeric($this->data[$col])){
-                    $root->addAttribute($arr[$col],$this->data[$col]);
-                }
-            }
-        }
-    }
-
-    abstract function tags($columns=NULL);
-
     public static function filterArray($array,$handler){
         $fileterdArray = $array();
         foreach ($array as $key=>$value){
@@ -104,9 +76,5 @@ abstract class MetaModel extends DbConnection
         return $fileterdArray;
     }
 
-    /**
-     * @param string[] $notIncluded
-     * @return string[]
-     */
     abstract function getColumns();
 }

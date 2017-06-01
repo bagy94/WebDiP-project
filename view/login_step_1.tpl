@@ -1,4 +1,4 @@
-<section class="content">
+<section class="content form-box">
     <form action="{$actionSubmit}" method="POST" id="formLogIn">
         <div class="form-inline-element-wrapper">
             <label for="inputUserNameLogIn" id="lblUserName">Korisničko ime</label>

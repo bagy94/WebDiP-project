@@ -9,11 +9,11 @@
 namespace bagy94\utility\db;
 require_once "DbResult.php";
 
-use bagy94\webdip\wellness\utility\db\DbResult;
+use bagy94\utility\db\DbResult;
 use \PDO as PDO;
 
 
-abstract class Db
+class Db
 {
     const dbFile = "db_data.ini";
     const dbQueryPrepPrefix = ":var";
