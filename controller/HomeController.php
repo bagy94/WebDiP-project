@@ -9,6 +9,7 @@
 namespace bagy94\controller;
 require_once "model/ServiceCategory.php";
 
+use bagy94\model\Service;
 use bagy94\model\ServiceCategory;
 use bagy94\utility\PageSettings;
 use bagy94\utility\WebPage;
@@ -52,12 +53,29 @@ class HomeController extends Controller
      */
     function services(){
         $xml = new SimpleXMLElement("<xml/>");
-        $scid = filter_input(INPUT_GET,self::ARG_POST_SERVICE_CATEGORY_ID,FILTER_SANITIZE_NUMBER_INT);
+        $scid = filter_input(INPUT_POST,self::ARG_POST_SERVICE_CATEGORY_ID,FILTER_SANITIZE_NUMBER_INT);
         if(!$scid){
             $xml->addAttribute("success","0");
             $xml->addAttribute("message","Kategorija nije odabrana");
             return $this->render($xml,"XML");
         }
-
+        $result = Service::getServiceFromReservationByCategory($scid,1);
+        if($result->success){
+            /***
+             * @var Service[] $arr
+             */
+            $arr = $result->getData();
+            foreach ($arr as $service){
+                $child = $xml->addChild("service",$service->getServiceId());
+                $child->addAttribute("ime",$service->getName());
+                $child->addAttribute("opis",$service->getDescription());
+                $child->addAttribute("trajanje",$service->getDuration());
+                $child->addAttribute("cijena",$service->getPrice());
+            }
+        }
+        else{
+            $xml->addAttribute("message","Nema rezervacija za kategoriju {$scid}");
+        }
+        return $this->render($xml,"XML");
     }
 }

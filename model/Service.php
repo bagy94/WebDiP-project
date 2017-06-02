@@ -14,7 +14,7 @@ use bagy94\utility\db\DbResult;
 
 class Service extends Model
 {
-    const TOP_3_RESERVED = "SELECT COUNT( * ) , s.service_id, s.name, s.duration, s.description
+    const TOP_3_RESERVED = "SELECT COUNT( * ) , s.service_id, s.name, s.duration, s.description,s.price
                                 FROM service s
                                 INNER JOIN sc_assignments sca ON s.deleted=0 
                                   AND s.assignment_id = sca.assignment_id
@@ -26,6 +26,14 @@ class Service extends Model
 
     public static $t = "service";
     public static $tId = "service_id";
+    public static $tAssignmentId = "assignment_id";
+    public static $tName = "name";
+    public static $tDuration = "duration";
+    public static $tDescription = "description";
+
+
+    private $service_id,$assignment_id,$name,$duration,$price,$description;
+
 
 
     public function __construct($id = NULL, $data = array())
@@ -33,10 +41,123 @@ class Service extends Model
         parent::__construct($id, $data);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getServiceId()
+    {
+        return $this->service_id;
+    }
 
+    /**
+     * @param mixed $service_id
+     * @return Service
+     */
+    public function setServiceId($service_id)
+    {
+        $this->service_id = $service_id;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAssignmentId()
+    {
+        return $this->assignment_id;
+    }
+
+    /**
+     * @param mixed $assignment_id
+     * @return Service
+     */
+    public function setAssignmentId($assignment_id)
+    {
+        $this->assignment_id = $assignment_id;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param mixed $name
+     * @return Service
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDuration()
+    {
+        return $this->duration;
+    }
+
+    /**
+     * @param mixed $duration
+     * @return Service
+     */
+    public function setDuration($duration)
+    {
+        $this->duration = $duration;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    /**
+     * @param mixed $price
+     * @return Service
+     */
+    public function setPrice($price)
+    {
+        $this->price = $price;
+        return $this;
+    }
+
+
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param mixed $description
+     * @return Service
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+
+    /**
+     * @return array
+     */
     function getColumns()
     {
-        // TODO: Implement getColumns() method.
+        return[];
     }
 
 
@@ -44,24 +165,29 @@ class Service extends Model
      * @param int $categoryId
      * @param int $reservationState
      * @param int $limit
-     * @return Service[]
+     * @return DbResult
      */
     public static function getServiceFromReservationByCategory($categoryId, $reservationState, $limit=3){
         $db = new Db();
         $db->connect();
         $db->setQuery(self::TOP_3_RESERVED." LIMIT $limit");
         $db->prepare();
-        $db->stm->execute([":varCategoryId"=>$categoryId,":varReservationState"=>$reservationState]);
-        $result = new DbResult($db->stm->rowCount(),[]);
-        while (list($num,$id,$name,$duration,$description) = $db->stm->fetch()){
-            $service = new \stdClass();
-            $service->sifra = $id;
-            $service->ime = $name;
-            $service->trajanje = $duration;
-            $service->opis = $description;
-            $result->appendRow($service);
+        $db->getStm()->execute([":varCategoryId"=>$categoryId,":varReservationState"=>$reservationState]);
+        $result = new DbResult($db->getStm()->rowCount(),[]);
+        while (($obj = $db->getStm()->fetchObject(__CLASS__))){
+            $result->appendRow($obj);
         }
         $db->disconnect();
         return $result;
+    }
+
+    function save($columns = array())
+    {
+        // TODO: Implement save() method.
+    }
+
+    function init($constraint = NULL)
+    {
+        // TODO: Implement init() method.
     }
 }

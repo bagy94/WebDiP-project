@@ -18,7 +18,7 @@ class Db
     const dbFile = "db_data.ini";
     const dbQueryPrepPrefix = ":var";
 
-    protected $query="";
+    protected $query;
     protected $queryParams = NULL;
     /*** @var DbResult $dbResult */
     protected $dbResult = NULL;
@@ -27,18 +27,20 @@ class Db
     /*** @var \PDOStatement $stm */
     protected $stm;
 
-    public function __construct($pdo=null)
+    public function __construct($query="",$params=[],$pdo=null)
     {
         $this->connection = $pdo;
+        $this->query = $query;
+        $this->queryParams = $params;
     }
 
     /**
      *set new pdo instance for database in db_data.ini file
-     * @return PDO
+     * @return Db
      */
     public function connect(){
         $this->connection = self::getInstance();
-        return $this->connection;
+        return $this;
     }
 
     /**
@@ -81,6 +83,10 @@ class Db
         //echo "<br>QueryResult";
         //print_r($this->dbResult);
         return $this->dbResult->success;
+    }
+
+    public function runQuery(){
+        return $this->stm->execute($this->queryParams);
     }
 
 
@@ -241,5 +247,10 @@ class Db
     }
     public static function offset($startPosition){
         return is_numeric($startPosition)?" OFFSET {$startPosition}":"";
+    }
+
+    public function getStm()
+    {
+        return $this->stm;
     }
 }

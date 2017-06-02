@@ -7,33 +7,34 @@
  */
 
 namespace bagy94\model;
+use bagy94\utility\db\Db;
+
 require_once "MetaModel.php";
 require_once "IModel.php";
 
 abstract class Model extends MetaModel implements IModel
 {
+    public static $QUERRY_INSERT;
+    public static $QUERY_UPDATE;
+    public static $QUERY_INIT_BY_ID;
+
 
     public static $t="table";
     public static $tId = "id";
     public static $tDeleted = "deleted";
     public static $tCreatedAt="created_at";
 
+
     public function __construct($id=NULL,$data=array())
     {
-        if(!is_null($data) && count($data)){
-            $this->data = $data;
-        }else if(!is_null($id) && is_numeric($id)){
-            $this->set(self::$tId,$id);
-            $this->init();
-        }
-        parent::__construct(null);
+
     }
 
     /**
      * Insert | Update object in Database
      * @param array $columnsToSave
      */
-    function save($columnsToSave = array())
+    /*function save($columnsToSave = array())
     {
         if( !(is_array($columnsToSave) && count($columnsToSave))){
             $columnsToSave = $this->columns();
@@ -83,13 +84,13 @@ abstract class Model extends MetaModel implements IModel
         $this->disconnect();
         return $this->dbResult->success;*/
 
-    }
+    //}
 
     /**
      * Initialize object from Database
      * @param array $columnsToInitBy
      * @return bool
-     */
+     *//*
     function init($columnsToInitBy=array())
     {
         $this->query = "SELECT * FROM `".self::$t."` WHERE ";
@@ -121,22 +122,8 @@ abstract class Model extends MetaModel implements IModel
         $this->disconnect();
         return null;
 
-    }
-    /**
-     * Saves the query we want to execute next
-     * @param string $query
-     */
-    function setQuery($query){
-        $this->query = $query;
-    }
-    /**
-     * Saves params for saved query
-     * @param null $queryParams
-     */
-    public function setQueryParams($queryParams)
-    {
-        $this->queryParams = $queryParams;
-    }
+    }*/
+
 
     /**
      * @param null $columns
@@ -144,12 +131,12 @@ abstract class Model extends MetaModel implements IModel
      * @param string $options
      * @return mixed
      */
-    static function getAll($columns=NULL, $constraint="", $options=""){
+    public static function getAll($columns=NULL, $constraint="", $options=""){
         $class = get_called_class();
         $table = $class::$t;
-        $connection = self::getInstance();
-        $query = self::makeQuery("SELECT",[$table],$columns,$constraint,$options);
-        $stm = self::execute($query,$connection);
+        $connection = Db::getInstance();
+        $query = Db::makeQuery("SELECT",[$table],$columns,$constraint,$options);
+        $stm = Db::execute($query,$connection);
         unset($connection);
         return $stm;
     }

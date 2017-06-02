@@ -62,7 +62,7 @@ function getXml(data,handler,url,method){
         data:data,
         dataType:"xml",
         success:function(res){
-            handler(res);
+            handler($(res).children());
         }
     });
 }

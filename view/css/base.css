@@ -97,7 +97,7 @@ nav.menu>ul>li>a {
 }
 
 
-@media screen and (min-width: 1024px) {
+@media screen and (min-width: 850px) {
     div.page{
         min-width: 50%;
         max-width: 85%;
@@ -160,6 +160,7 @@ div.err-wrapper > * {
     opacity: 0.65;
     min-height: 300px;
     border-radius: 6px;
+    margin-top: 20px;
 }
 .useless-link{
     text-decoration: none;

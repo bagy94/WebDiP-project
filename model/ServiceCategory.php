@@ -12,10 +12,13 @@ require_once "Model.php";
 class ServiceCategory extends Model
 {
 
+
     public static $t = "service_categorys";
     public static $tId = "category_id";
 
     public static $tName = "name";
+
+    private $category_id,$name;
 
     function tags($columns = NULL)
     {
@@ -28,5 +31,15 @@ class ServiceCategory extends Model
     function getColumns()
     {
         return [self::$tName];
+    }
+
+    function save($columns = array())
+    {
+        // TODO: Implement save() method.
+    }
+
+    function init($constraint = NULL)
+    {
+        // TODO: Implement init() method.
     }
 }

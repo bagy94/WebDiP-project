@@ -12,7 +12,7 @@ use bagy94\utility\db\Db as DbConnection;
  */
 /**/
 
-abstract class MetaModel extends DbConnection
+abstract class MetaModel
 {
     /*
      * Regex patterns
@@ -20,37 +20,73 @@ abstract class MetaModel extends DbConnection
      * REGEX_TAGS-cover all tags on object
     */
     const REGEX_COLUMNS = "/^(t[A-Z]{1}[a-zA-z\_]+|t{1})$/";
+    /***
+     * @var DbConnection $connection
+     */
+    protected $connection;
 
-    protected $data;
+    protected $created_at,$deleted;
 
-    /*** @return mixed */
-    public function get($column)
-    {
-        return is_array($this->data) && array_key_exists($column,$this->data)?$this->data[$column]:"NULL";
+
+
+    public function connect(){
+        $this->connection = DbConnection::getInstance();
+        $this->connection->connect();
+    }
+
+    public function disconnect(){
+        if(isset($this->connection)){
+            $this->connection->disconnect();
+        }
+        $this->connection = NULL;
     }
 
     /**
-     * @param string $col
-     * @param mixed $data
+     * @return mixed
+     */
+    public function getCreatedAt()
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * @param mixed $created_at
      * @return MetaModel
      */
-    public function set($col,$data)
+    public function setCreatedAt($created_at)
     {
-        $this->data[$col] = $data;
+        $this->created_at = $created_at;
         return $this;
     }
-    public function getAllValues(){
-        return $this->data;
+
+    /**
+     * @return mixed
+     */
+    public function getDeleted()
+    {
+        return $this->deleted;
     }
-    public function initEmptyDataArray(){
-        $cols = $this->columns();
-        $arr = array();
-        foreach ($cols as $col){
-            $arr[$cols] = null;
-        }
-        $this->data = $arr;
+
+    /**
+     * @param mixed $deleted
+     * @return MetaModel
+     */
+    public function setDeleted($deleted)
+    {
+        $this->deleted = $deleted;
         return $this;
     }
+
+    /**
+     * @return DbConnection
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+
+
 
     /**
      * @return array
@@ -60,9 +96,6 @@ abstract class MetaModel extends DbConnection
         return array_keys(array_filter(get_class_vars(get_called_class()), function($k){
             return preg_match(self::REGEX_COLUMNS,$k);
         },ARRAY_FILTER_USE_KEY));
-    }
-    public function values(){
-        return $this->data;
     }
 
     public static function filterArray($array,$handler){
@@ -75,6 +108,7 @@ abstract class MetaModel extends DbConnection
         }
         return $fileterdArray;
     }
+
 
     abstract function getColumns();
 }
