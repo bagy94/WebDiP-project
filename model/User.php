@@ -98,15 +98,8 @@ class User extends Model
         // TODO: Implement init() method.
     }
 
-    public function initByUserName($userName){
-        $db = new Db(self::QUERY_INIT_BY_USER_NAME,[":varUserName"=>$userName],Db::getInstance());
-        if ($db->runQuery() && $db->getStm()->rowCount()){
-            $user = $db->getStm()->fetchObject(__CLASS__);
-        }else{
-            $user = NULL;
-        }
-        $db->disconnect();
-        return user;
+    public static function initByUserName($userName){
+        return self::initBy(self::QUERY_INIT_BY_USER_NAME,[":varUserName"=>$userName]);
     }
 
     /**

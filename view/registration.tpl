@@ -1,5 +1,5 @@
 <section class="content form-box">
-    <form action="{$formAction}" method="POST">
+    <form action="{$formAction}" method="POST" class="box">
         <div class="form-inline-element-wrapper">
             <label for="inputName">Ime</label>
             <input type="text" id="inputName" name="Name" class="user-data">
@@ -31,10 +31,10 @@
                 <option value="2">Dvostupanjska</option>
             </select>
         </div>
-        <div class="form-inline-element-wrapper">
+        <div class="form-inline-element-wrapper" id="captcha">
             <div class="g-recaptcha" data-sitekey="{$recaptchaPublic}"></div>
         </div>
 
-        <input type="submit" id="btnSubmitUser" name="SubmitUser" value="Potvrdi">
+        <input type="submit" id="btnSubmitUser" name="SubmitUser" value="Potvrdi" disabled>
     </form>
 </section>

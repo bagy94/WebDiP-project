@@ -18,15 +18,15 @@
     {/foreach}
 
 </head>
-<body style="background-image: {$ps->theme.body.background_image}">
+<body style="background-image: {$ps->theme.body.background_image}"class="page-background">
     <header style="background-color: {$ps->theme.header.background_color}">
         <h1>{$title}</h1>
     </header>
-    <div class="page">
-        <nav class="menu">
-            <ul>
-                {foreach from=$ps->links.menu key=k item=v}
-                    <li style="background-color:{$ps->theme.menu.li.background_color};box-shadow: {$ps->theme.menu.li.box_shadow};"><a href="{$v}" style="color: {$ps->theme.menu.a.color}">{$k}</a></li>
-                {/foreach}
-            </ul>
-        </nav>
+        <div class="page">
+            <nav class="menu">
+                <ul>
+                    {foreach from=$ps->links.menu key=k item=v}
+                        <li style="background-color:{$ps->theme.menu.li.background_color};box-shadow: {$ps->theme.menu.li.box_shadow};"><a href="{$v}" style="color: {$ps->theme.menu.a.color}">{$k}</a></li>
+                    {/foreach}
+                </ul>
+            </nav>

@@ -15,14 +15,14 @@ require_once "Controller.php";
 
 class LogInController extends Controller
 {
-    const ARG_POST_USERNAME = "user-name";
+    const ARG_POST_USERNAME = "user_name";
     const ARG_POST_PASSWORD = "password";
 
     const VAR_VIEW_ACTION_SUBMIT_1 = "actionSubmit";
 
     public static $KEY = "login";
 
-    protected $actions = ["index","submit","postCode"];
+    protected $actions = ["index","submit","postCode","check"];
     protected $templates = [
         "view/login_step_1.tpl",
         "view/login_step_2.tpl"
@@ -31,12 +31,14 @@ class LogInController extends Controller
     function __construct()
     {
         parent::__construct("Prijava", "prijava signin login");
+        $this->initFiles();
     }
 
     function index()
     {
         Router::reqHTTPS(self::$KEY,$this->actions[0]);
         $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
+
 
         return $this->render($this->pageAdapter->getHTML());
     }
@@ -60,9 +62,14 @@ class LogInController extends Controller
     function postCode(){
 
     }
-    private function init(){
+    private function initFiles(){
         $this->pageAdapter->getSettings()->addCssLocal("login");
         $this->pageAdapter->getSettings()->addJsLocal("login");
+    }
+
+    public function check()
+    {
+
     }
 
 }

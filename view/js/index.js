@@ -15,7 +15,7 @@ $(document).on("change","#selectCategory",function (event) {
 
 function onServiceSuccess(data) {
     var services = $(data).find("service");
-    $("div.service-box").remove();
+    $(".box-service-list").remove();
     if(services.length === 0){
         $(".index-content").append(
             '<div class="box-service-list service-box no-data">'+

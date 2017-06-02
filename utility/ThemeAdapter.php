@@ -62,7 +62,7 @@ class ThemeAdapter
                 "background_color"=>"rgb(65, 4, 103)"
             ],
             self::STYLE_BODY=>[
-                "background_image"=>"url(".Router::asset("background10_2","jpg").")",
+                "background_image"=>"url(".Router::asset("background1","jpg").")",
                 "font"=>"Times New Roman"
             ],
             self::STYLE_MENU=>[

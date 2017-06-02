@@ -35,14 +35,15 @@ use bagy94\controller\DocumentationController;
 use bagy94\controller\HomeController;
 use bagy94\controller\LogInController;
 use bagy94\controller\RegistrationController;
+use bagy94\controller\ThemeService;
 use bagy94\utility\WebPage;
 use bagy94\utility\Response;
-$errorPage = new WebPage("view/error.tpl","Greška");
 
 
 
 
 function callController($controller,$action,$args=NULL){
+    //echo "controller:".$controller;
     switch ($controller){
         case "home":
            $active = new HomeController();
@@ -59,9 +60,11 @@ function callController($controller,$action,$args=NULL){
         case "doc":
             $active = new DocumentationController();
             break;
+        case "theme":
+            $active = new ThemeService();
+            break;
         default:
-            showError("404 page not found");
-            return;
+            return showError("404 page not found");
     }
     if($active->hasAction($action)){
         return $active->invoke($action,NULL);
@@ -71,7 +74,7 @@ function callController($controller,$action,$args=NULL){
 }
 
 function showError($message){
-    global $errorPage;
+    $errorPage = new WebPage("view/error.tpl","Greška");
     $errorPage->assign("message",$message);
-    return new Response($errorPage->response());
+    return new Response($errorPage->getHTML());
 }

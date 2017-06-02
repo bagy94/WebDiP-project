@@ -7,17 +7,19 @@
  */
 
 namespace bagy94;
+
 require_once "application.php";
 use bagy94\utility\Router;
 
 if(isset($_GET[Router::ROUTE])){
     $route = filter_input(INPUT_GET,Router::ROUTE,FILTER_SANITIZE_URL);
-    //echo $route;
-}else if(isset($_GET[Router::SERVICE])){
-    $route = filter_input(INPUT_GET,Router::SERVICE,FILTER_SANITIZE_URL);
-}else{
+    $route = $route === ""?"home/index":$route;
+}
+else{
     $url = Router::make("home","index");
     header("Location: $url");
+    //echo "bla3";
 }
+
 $request = Router::decode($route);
 callController($request['controller'],$request['action'])->show();

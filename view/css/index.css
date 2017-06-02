@@ -8,11 +8,11 @@
 }
 
 .service-box{
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: inline-block;
     width: inherit;
     border-radius: 5px;
-    background-color: rgba(199, 199, 199, 0.39)
+    background-color: rgba(173, 173, 173, 0.81)
 }
 .service-box-splitter{
     display: block;
@@ -22,12 +22,14 @@
 }
 .service-box-splitter>div[name="name"]{
     border-bottom: 1px solid lightgrey;
+    padding-bottom: 7px;
+    padding-top: 4px;
 }
 .service-box-inside{
     display: inline-block;
 }
 .box-service-list{
-    margin-top: 10px;
+    margin-top: 3%;
     width: 100%;
 }
 
@@ -46,10 +48,13 @@
         width: 97%;
     }
     .select-drop-down{
-        width: 97%;
+        width: 94%;
     }
     .service-box-splitter{
         margin: 3px;
         padding: 10px;
     }
+}
+.no-data{
+    margin-top: 6%;
 }

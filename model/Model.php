@@ -14,7 +14,7 @@ require_once "IModel.php";
 
 abstract class Model extends MetaModel implements IModel
 {
-    public static $QUERRY_INSERT;
+    public static $QUERY_INSERT;
     public static $QUERY_UPDATE;
     public static $QUERY_INIT_BY_ID;
 
@@ -25,9 +25,14 @@ abstract class Model extends MetaModel implements IModel
     public static $tCreatedAt="created_at";
 
 
-    public function __construct($id=NULL,$data=array())
+    public function __construct($id=NULL,$data=NULL)
     {
+        if(!is_null($data)){
+            $this->initData($data);
+        }
+        else if (!is_null($id)){
 
+        }
     }
 
     /**
@@ -86,11 +91,11 @@ abstract class Model extends MetaModel implements IModel
 
     //}
 
-    /**
+    /*
      * Initialize object from Database
      * @param array $columnsToInitBy
      * @return bool
-     *//*
+
     function init($columnsToInitBy=array())
     {
         $this->query = "SELECT * FROM `".self::$t."` WHERE ";
@@ -123,7 +128,27 @@ abstract class Model extends MetaModel implements IModel
         return null;
 
     }*/
+    protected function buildQueryInitById(){
+        self::$QUERY_INIT_BY_ID = "SELECT * FROM ".self::$t." WHERE ".self::$tId."= ?";
+    }
 
+    public function initData($dataRow)
+    {
+        foreach ($dataRow as $column=>$value){
+            $this->$column = $value;
+        }
+    }
+
+    public static function initBy($query,$params){
+        $db = new Db($query,$params,Db::getInstance());
+        if ($db->runQuery() && $db->getStm()->rowCount()){
+            $model = $db->getStm()->fetchObject(__CLASS__);
+        }else{
+            $model = NULL;
+        }
+        $db->disconnect();
+        return $model;
+    }
 
     /**
      * @param null $columns

@@ -40,9 +40,8 @@ class RegistrationController extends Controller
             self::VAR_VIEW_FORM_ACTION=>$this->formAction(1),
             self::VAR_VIEW_RECAPTCHA_KEY_PUBL=>self::RECAPTCHA_PUBLIC
         ]);
-        $ps = new PageSettings();
-        $ps->addJS("https://www.google.com/recaptcha/api.js");
-        $this->pageAdapter->setSettings($ps);
+        $this->initFiles();
+
         return $this->render($this->pageAdapter->getHTML());
 
     }
@@ -50,5 +49,10 @@ class RegistrationController extends Controller
 
     function postSubmit(){
 
+    }
+
+    private function initFiles(){
+        $this->pageAdapter->getSettings()->addJS("https://www.google.com/recaptcha/api.js");
+        $this->pageAdapter->getSettings()->addCSSLocal("registration");
     }
 }

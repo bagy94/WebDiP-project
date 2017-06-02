@@ -69,3 +69,22 @@ function getXml(data,handler,url,method){
 function isDataCorrect(){
     return !$('.error').length ;
 }
+
+function getJson(url,method,handler) {
+    var m = method ==="undefind"?"POST":method.toUpperCase();
+    var path = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req="+url;
+    $.ajax({
+        url: path,
+        type: m,
+        data:data,
+        dataType:"json",
+        success:function(res){
+            handler(res);
+        }
+    });
+}
+
+function getActiveTheme(onThemeFetched){
+    var url = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req=theme/service";
+    $.getJSON(url,onThemeFetched);
+}

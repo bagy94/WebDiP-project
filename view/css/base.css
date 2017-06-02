@@ -13,12 +13,6 @@ html {
 body {
     margin: 0px;
     width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-repeat: round;
-}
-
-.wallpaper-default{
 }
 
 
@@ -30,6 +24,16 @@ body {
 
 .page{
     text-align: center;
+    margin-top: 110px;
+    margin-bottom: 70px;
+}
+.page-background{
+    background-repeat: round;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 /*Header*/
@@ -37,11 +41,15 @@ body {
 header {
     padding-left: 10px;
     padding-right: 10px;
-    left: 0;
+    /* left: 0; */
     top: 0;
+    min-width: 100%;
     width: 100%;
     text-align: left;
     color: white;
+    position: fixed;
+    margin-bottom: auto;
+    z-index: 2;
 }
 
 header > * {
@@ -51,14 +59,21 @@ header > * {
 /*Footer*/
 
 footer {
-    position: fixed;
+    /*position: fixed;
     padding-left: 10px;
     padding-right: 10px;
     left: 0;
     bottom: 0;
     width: 100%;
     text-align: center;
-    color: white;
+    color: white;*/
+
+    left: 0;
+    bottom: 0;
+    min-width: 100%;
+    width: 100%;
+    text-align: center;
+    position: fixed;
 }
 
 footer a {
@@ -120,6 +135,10 @@ nav.menu>ul>li>a {
     footer a {
         display: block;
     }
+    .page-background{
+        background-repeat: no-repeat;
+        background-size: auto;
+    }
 }
 
 
@@ -177,4 +196,42 @@ div.err-wrapper > * {
 }
 .purple-rain{
 
+}
+.form-inline-element-wrapper{
+    width: 98%;
+    text-align: start;
+    display: block;
+    margin: 1%;
+}
+.form-inline-element-wrapper>*{
+    display: inline-block;
+}
+.form-inline-element-wrapper>input[type="text"],
+.form-inline-element-wrapper>input[type="password"],
+.form-inline-element-wrapper>input[type="date"],
+.form-inline-element-wrapper>input[type="reset"],
+.form-inline-element-wrapper>input[type="email"],
+.form-inline-element-wrapper>input[type="time"]{
+    min-width: 50%;
+    max-width: 70%;
+    width: 55%;
+    float: right;
+}
+.form-inline-element-wrapper>label{
+    width: auto;
+    font-size: large;
+}
+input[type="submit"]{
+    min-height: 30px;
+    min-width: 50px;
+    font-size: large;
+}
+form.box{
+    background-color: rgba(82,82,110,0.73);
+    border-radius: 6px;
+    margin-top: 40px;
+    color: white;
+}
+select{
+    font-size: larger;
 }

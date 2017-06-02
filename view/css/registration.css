@@ -1,0 +1,22 @@
+#captcha{
+    text-align: center;
+    width: 98%;
+    display: block;
+    margin: 20px 3px 3px 3px;
+}
+.form-inline-element-wrapper{
+    margin: 12px;
+}
+form.box{
+    padding: 7px 11px 7px 7px;
+}
+#selectLogInType{
+    min-width: 50%;
+    max-width: 70%;
+    width: 55%;
+    float: right;
+    color: white;
+}
+input[type="submit"]{
+    color: white;
+}

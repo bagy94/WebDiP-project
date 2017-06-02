@@ -9,7 +9,7 @@
 namespace bagy94\utility;
 class Router
 {
-    const DIR_ROOT = "WebDiP2016x005";
+    //const DIR_ROOT = "WebDiP2016x005";
     const ROUTE = "req";
     const SERVICE = "service";
 
@@ -19,8 +19,9 @@ class Router
 
     function __construct()
     {
-        $urlArrray = explode("/",$_SERVER["SCRIPT_NAME"]);
-        $this->reqParts = array_slice($urlArrray, 0, array_search(self::DIR_ROOT, $urlArrray, true) +1);
+        //$urlArrray = explode("/",$_SERVER["SCRIPT_NAME"]);
+        $this->reqParts = explode("/",$_SERVER["HTTP_HOST"].dirname($_SERVER["SCRIPT_NAME"]));
+        //$this->reqParts = array_slice($urlArrray, 0, array_search(self::DIR_ROOT, $urlArrray, true) +1);
     }
 
     public function build()
@@ -34,8 +35,8 @@ class Router
             $this->build();
         }
         return $HTTPS?
-            sprintf("https://%s%s/", $_SERVER["HTTP_HOST"], $this->path):
-            sprintf("http://%s%s/", $_SERVER["HTTP_HOST"], $this->path);
+            sprintf("https://%s/", $this->path):
+            sprintf("http://%s/", $this->path);
     }
 
     public function buildLink($afterRootPath,$HTTPS=FALSE)
@@ -138,5 +139,12 @@ class Router
         return isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on'?
             self::buildRoute("view/asset/$filename.{$ext}",TRUE):
             self::buildRoute("view/asset/$filename.{$ext}");
+    }
+
+    public function testPrintPath(){
+        $this->build();
+        print_r($this->path);
+        print_r($this->reqParts);
+        return $this->buildRoot();
     }
 }
