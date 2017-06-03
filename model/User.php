@@ -13,28 +13,17 @@ require_once "Model.php";
  */
 class User extends Model
 {
-    const QUERY_INIT_BY_ID = "SELECT * FROM  `users` WHERE  `user_id` = :varUserId";
-    const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= :varUserName";
-    const Query_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= :varEmail";
+    const QUERY_INIT_BY_ID = "SELECT * FROM  `users` WHERE  `user_id` = ?";
+    const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= ?";
+    const Query_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
+    const REGEX_EMAIL = "";
+    const REGEX_USERNAME = "";
 
-    public static $QUERRY_INSERT = "INSERT INTO `users` VALUES 
-                                    (DEFAULT,
-                                    :varUserName,
-                                    :varEmail,
-                                    :varPassword,
-                                    :varPasswordHash,
-                                    :varName,
-                                    :varSurname,
-                                    :varBirthday,
-                                    :varGender,
-                                    0,
-                                    :varLogInType,
-                                    :varActivationHash,
-                                    :varActHashCreatedAt,
-                                    '',
-                                    :varTypeId,
-                                    :varCreatedAt,
-                                    0)";
+    public static $QUERRY_INSERT ="INSERT INTO `users` VALUES 
+                                    (DEFAULT,:varUserName,:varEmail,:varPassword,:varPasswordHash,:varName,:varSurname,
+                                    :varBirthday,:varGender,0,:varLogInType,:varActivationHash,:varActHashCreatedAt,'',
+                                    :varTypeId,:varCreatedAt, 0)";
+
 
 
     public static $t = "users";
@@ -59,7 +48,7 @@ class User extends Model
             $activation_hash_activated_at,$type_id;
 
 
-
+    private $errors=[];
 
     public function __construct($id = NULL, array $data = array())
     {
@@ -90,7 +79,7 @@ class User extends Model
 
     function save($columns = array())
     {
-        // TODO: Implement save() method.
+
     }
 
     function init($constraint = NULL)
@@ -98,8 +87,61 @@ class User extends Model
         // TODO: Implement init() method.
     }
 
+    /**
+     * Create instance of user by user-name or return null if user-name doesn't exist
+     * @param $userName
+     * @return User|null
+     */
     public static function initByUserName($userName){
-        return self::initBy(self::QUERY_INIT_BY_USER_NAME,[":varUserName"=>$userName]);
+        return self::initBy(self::QUERY_INIT_BY_USER_NAME,[$userName]);
+    }
+
+
+    /**
+     * Create instance of user by email or return null if email doesn't exist
+     * @param $email
+     * @return User|null
+     */
+    public static function initByEmail($email){
+        return self::initBy(self::Query_INIT_BY_EMAIL,[$email]);
+    }
+
+
+    /**
+     * Check is correct:
+     * Name
+     * Surname
+     * Username
+     * Password
+     * Email
+     * Gender
+     * Birthday
+     * @return bool
+     */
+    public function isRegistrationCorrect(){
+        if(!isset($this->name)){array_push($this->errors,"Ime nije uneseno");}
+        else if($this->name[0] !== strtoupper($this->name[0]))array_push($this->errors,"Ime mora započinjati velikim slovom");
+        if(!isset($this->surname)){array_push($this->errors,"Prezime nije uneseno");}
+        else if($this->surname[0] !== strtoupper($this->surname[0]))array_push($this->errors,"Preyimeme mora započinjati velikim slovom");
+        if(!isset($this->email))array_push($this->errors,"Email nije unesen");
+        else if(!preg_match(self::REGEX_EMAIL,$this->email))array_push($this->errors,"Format email ne valja");
+        if(!isset($this->user_name))array_push($this->errors,"Korisničko ime nije uneseno");
+        elseif (count($this->user_name)<6)array_push($this->errors,"Korisničko ime mora biti više od 6 znakova");
+        elseif (!preg_match(self::REGEX_USERNAME,$this->user_name))array_push($this->errors,"Korisničko ime mora sadržavati velika slova i brojeve");
+        if(!isset($this->password))array_push($this->errors,"Loznika nije unesena");
+        elseif(!PasswordUtility::ckeck($this->password)){array_push($this->errors,"Lozinka mora sadržavati više od 6 znakova.\\n Mora imati 2 velika slova, 2 broja i 2 specijalna znaka.");}
+        if (!isset($this->gender))array_push($this->errors,"Spol nije unesen");
+        if (!isset($this->birthday))array_push($this->errors,"Datum rođenja nije unesen");
+        elseif (!preg_match(self::REGEX_BIRTHDAY))array_push($this->errors,"Datum rođenja nije u zadanom formatu");
+        return !count($this->errors);
+    }
+
+    /**
+     * @return array
+     */
+    public function getErrors()
+    {
+        return $this->errors;
     }
 
     /**

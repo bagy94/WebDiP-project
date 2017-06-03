@@ -200,8 +200,7 @@ div.err-wrapper > * {
 .form-inline-element-wrapper{
     width: 98%;
     text-align: start;
-    display: block;
-    margin: 1%;
+    display: inline-block;
 }
 .form-inline-element-wrapper>*{
     display: inline-block;
@@ -234,4 +233,51 @@ form.box{
 }
 select{
     font-size: larger;
+}
+.err-box{
+    border-left: 2px solid #D04C00;
+    border-right: 2px solid #D04C00;
+    width: 54%;
+    display: block;
+    float: right;
+    margin-right: 0.5%;
+    margin-top: 1px;
+}
+.input-error-icon{
+    display: inline;
+    vertical-align: top;
+    float: left;
+}
+.input-error{
+    border-bottom: 2px solid #D04C00;
+    text-align: center;
+    color: yellow;
+    background-color: grey;
+
+}
+.input-error>p{
+    margin: 0px;
+    padding: 0px;
+}
+.has-error{
+    background: #730000;
+    color: #D8D8D8;
+    border: 1px solid #FFE600;
+}
+.error{
+    color: #FFAB00;
+    text-align: center;
+    display: block;
+    padding-top: 3px;
+}
+
+div.form-inline-element-wrapper.has-error{
+    padding: 3px 5px;
+    margin: 0px;
+}
+input{
+    padding-left: 3px;
+}
+.hidden{
+    display: none;
 }

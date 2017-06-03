@@ -52,10 +52,16 @@ function isImage(file){
 function isPDF(file){
     return file.name.split(".").last() === "pdf";
 }
-
+/**
+ * Retrive XML
+ * @param data
+ * @param handler
+ * @param url
+ * @param method
+ */
 function getXml(data,handler,url,method){
     var m = method ==="undefind"?"POST":method.toUpperCase();
-    var path = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req="+url;
+    var path = window.location.protocol+"//barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req="+url;
     $.ajax({
         url: path,
         type: m,
@@ -69,10 +75,15 @@ function getXml(data,handler,url,method){
 function isDataCorrect(){
     return !$('.error').length ;
 }
-
+/**
+ * Retrive JSON.
+ * @param url
+ * @param method
+ * @param handler
+ */
 function getJson(url,method,handler) {
     var m = method ==="undefind"?"POST":method.toUpperCase();
-    var path = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req="+url;
+    var path = window.location.protocol+"//barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/index.php?req="+url;
     $.ajax({
         url: path,
         type: m,
@@ -88,3 +99,23 @@ function getActiveTheme(onThemeFetched){
     var url = window.location.protocol+"://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req=theme/service";
     $.getJSON(url,onThemeFetched);
 }
+
+function addError(element,errorId,errorMsg) {
+    if($(element).next("#errno-"+errorId).length === 0){
+        $(
+            '<div class="error" id="errno-'+errorId+'">' + errorMsg + '</div>'
+        ).insertAfter(element);
+    }
+    $(element).parent().addClass("has-error");
+}
+function removeError(element,errorId) {
+    $(element).next("#errno-"+errorId).remove();
+    if($(element).next(".error").length === 0){
+        $(element).parent().removeClass("has-error");
+    }
+}
+
+HTMLInputElement.prototype.isFirstUppercase = function(){
+    return this.value[0] === this.value[0].toUpperCase();
+};
+

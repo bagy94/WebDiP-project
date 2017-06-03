@@ -22,4 +22,4 @@ else{
 }
 
 $request = Router::decode($route);
-callController($request['controller'],$request['action'])->show();
+callController($request['controller'],$request['action'],$request["args"])->show();

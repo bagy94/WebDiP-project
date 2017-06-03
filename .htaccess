@@ -2,5 +2,4 @@ RewriteEngine On
 RewriteCond $0 !\.(jpg|gif|png|js|css|pdf|eot|woff|ttf|svg|ico)$
 RewriteCond %{REQUEST_FILENAME} !-f
 
-RewriteRule ^(?!service)(.*) ?req=$1 [QSA]
-RewriteRule ^service/(.*)$ ?service=$1 [QSA]
+RewriteRule ^(.*)$ ?req=$1 [QSA]

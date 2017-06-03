@@ -33,22 +33,33 @@ abstract class Model extends MetaModel implements IModel
         else if (!is_null($id)){
 
         }
+        self::$t = $this::$t;
+        self::$tId = $this::$tId;
     }
 
     /**
      * Insert | Update object in Database
      * @param array $columnsToSave
      */
-    /*function save($columnsToSave = array())
+    function save($columnsToSave = array())
     {
+        $this->connect();
         if( !(is_array($columnsToSave) && count($columnsToSave))){
             $columnsToSave = $this->columns();
         }
-        if(isset($this->data[self::$tId])){
+        if(isset($this->{self::$tId}) && is_numeric($this->{self::$tId})){
             $query = "UPDATE `".self::$t."` SET ";
-            $k = count($columnsToSave);
-            $params = array();
-            for ($i = 0; $i < $k; $i++) {
+            $last = end($columnsToSave);
+            foreach ($columnsToSave as $column){
+                $query .= "`$column`= ? ";
+                if($column !== $last)$query .= ", ";
+                $this->connection->addParam($this->$column);
+            }
+
+
+
+
+            /*for ($i = 0; $i < $k; $i++) {
                 if(!self::isFunction($this->get($columnsToSave[$i]))){
                     $param = self::dbQueryPrepPrefix.$columnsToSave[$i];
                     $query .= "`$columnsToSave[$i]` = {$param}";
@@ -59,7 +70,7 @@ abstract class Model extends MetaModel implements IModel
                 if(($i+1)<$k){
                     $query .= ",";
                 }
-            }
+            }*/
 
         }else{
             $query = "INSERT INTO `".self::$t."` VALUES (DEFAULT,";
@@ -89,7 +100,7 @@ abstract class Model extends MetaModel implements IModel
         $this->disconnect();
         return $this->dbResult->success;*/
 
-    //}
+    }
 
     /*
      * Initialize object from Database
@@ -128,6 +139,37 @@ abstract class Model extends MetaModel implements IModel
         return null;
 
     }*/
+
+    protected function insert($values=[]){
+        $this->connect();
+        if($this->connection->makeInsert($this::$t,$values)->prepare()->runQuery()){
+            $id = $this::$tId;
+            $this->$id = $this->connection->lastId();
+        }
+        $this->connection->disconnect();
+        return is_numeric($this->{self::$tId}) && $this->{self::$tId} !== "-1";
+    }
+    protected function update($columns=[],$constraintArray=[],$condition = "AND"){
+        if( !(is_array($columns) && count($columns))){
+            $columns = $this->columns();
+        }
+        if(!(is_array($constraintArray) && count($constraintArray))) {
+            $constraintArray = [self::$tId];
+        }
+        /*$queryy = Db::makeQuery("UPDATE",[self::$t]);
+        $query = "UPDATE `" . self::$t . "` SET ";
+        $last = end($columns);
+        foreach ($columns as $column) {
+            $query .= "`$column`= ? ";
+            if ($column !== $last) $query .= ", ";
+            $this->connection->addParam($this->$column);
+        }
+        //$query = " WHERE "
+        foreach ($constraintArray as $column){
+
+        }*/
+    }
+
     protected function buildQueryInitById(){
         self::$QUERY_INIT_BY_ID = "SELECT * FROM ".self::$t." WHERE ".self::$tId."= ?";
     }
@@ -142,7 +184,7 @@ abstract class Model extends MetaModel implements IModel
     public static function initBy($query,$params){
         $db = new Db($query,$params,Db::getInstance());
         if ($db->runQuery() && $db->getStm()->rowCount()){
-            $model = $db->getStm()->fetchObject(__CLASS__);
+            $model = $db->getStm()->fetchObject(get_called_class());
         }else{
             $model = NULL;
         }

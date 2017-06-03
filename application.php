@@ -67,7 +67,7 @@ function callController($controller,$action,$args=NULL){
             return showError("404 page not found");
     }
     if($active->hasAction($action)){
-        return $active->invoke($action,NULL);
+        return $active->invoke($action,$args);
     }else{
         return showError("420 Action not found");
     }

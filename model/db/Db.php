@@ -46,7 +46,7 @@ class Db
     /**
      * Prepare $stm
      * @param $query string
-     * @return \PDOStatement
+     * @return Db
      */
     public function prepare(){
         if(!is_string($this->query))return NULL;
@@ -55,7 +55,7 @@ class Db
             $this->connection = self::getInstance();
         }
         $this->stm = $this->connection->prepare($this->query);
-        return $this->stm;
+        return $this;
     }
 
 
@@ -86,6 +86,9 @@ class Db
     }
 
     public function runQuery(){
+        if(!isset($this->stm) || !is_a($this->stm,"PDOStatement")){
+            $this->prepare();
+        }
         return $this->stm->execute($this->queryParams);
     }
 
@@ -155,18 +158,111 @@ class Db
         $this->queryParams = $queryParams;
     }
 
-    public static function makeQuery($keyword,$table=array(),$data = array(),$condition=NULL,$options = NULL){
-        $querry="";
-        switch (strtoupper($keyword)){
-            case "SELECT":$querry = self::selectQuery($table,$data,$condition, $options); break;
-            case "INSERT":$querry = self::insertQuery(is_array($table)?$table[0]:$table, $data);break;
-            case "UPDATE":$querry = self::updateQuery(is_array($table)?$table[0]:$table, $data, $condition);break;
-            default :
+    public function make($keyword,$table=array(),$data = array(),$condition=NULL,$options = NULL){
 
-        }
-        //echo "<br>{$querry}";
-        return $querry;
     }
+
+
+
+    public function makeSelect($tables=[],$columns=[],$constraint=[],$options=NULL,$constraintGlue="AND"){
+        $col = isset($columns) && count($columns)?implode(",",$columns):"*";
+        $lastConst = end($constraint);
+        $const = "";
+        $this->queryParams = array();
+        foreach ($constraint as $column=>$value){
+            $param = ":p$column";
+            $const .= "`$column`= $param";
+            $this->queryParams[$param] = $value;
+            if ($column !== $lastConst) $const .= " $constraintGlue ";
+        }
+        $this->query = "SELECT {$col} FROM ".implode(",",$tables)." WHERE {$const}";
+    }
+
+    public function makeInsert($table,$data=[]){
+        $last = end($data);
+        $vals = "";
+        if (self::isAssocArray($data)){
+            $cols ="(";
+            foreach ($data  as $column=>$value){
+                $cols .= $column;
+                $vals .= self::isFunction($value)?$value:"?";
+                $this->addParam($value);
+                if ($last !== $column){$cols .= ",";$vals .= ",";}
+            }
+        }else{
+            $cols = "";
+            foreach ($data as $index=>$value){
+                $vals .= "?";
+                $this->addParam($value);
+                if ($last !== $index){$vals .= ",";}
+            }
+         }
+        $this->query = "INSERT INTO $table $cols VALUES ($vals)";
+        return $this;
+    }
+
+    public function lastId()
+    {
+        if(isset($this->connection)){
+            return $this->connection->lastInsertId();
+        }
+        return "-1";
+    }
+
+
+
+
+
+
+    public static function sort($column){
+        return is_null($column)?"":" ORDER BY {$column}";
+    }
+    public static function limit($numOfRows){
+        return is_numeric($numOfRows)?" LIMIT {$numOfRows}":"";
+    }
+    public static function offset($startPosition){
+        return is_numeric($startPosition)?" OFFSET {$startPosition}":"";
+    }
+
+    public function getStm()
+    {
+        return $this->stm;
+    }
+
+    public function addParam($param)
+    {
+        if(!isset($this->queryParams)){
+            $this->queryParams = array($param);
+        }else array_push($this->queryParams,$param);
+    }
+
+    public static function isAssocArray($array = array()){
+        if(count($array)===0){
+            return -1;
+        }
+        foreach ($array as $key => $value) {
+            if(!is_string($key)){
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static function isFunction($value){
+        return preg_match("/^[A-Za-z_]+\([A-Za-z0-9,]*\){1}$/", $value);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     public static function updateQuery($table,$data,$constraint){
         $querry = "UPDATE ".$table." SET ";
         $k = count($data)-1;
@@ -222,35 +318,19 @@ class Db
         $select = "SELECT {$col} FROM {$tab} {$cons} {$options}";
         return $select;
     }
+    public static function makeQuery($keyword,$table=array(),$data = array(),$condition=NULL,$options = NULL){
+        $querry="";
+        switch (strtoupper($keyword)){
+            case "SELECT":$querry = self::selectQuery($table,$data,$condition, $options); break;
+            case "INSERT":$querry = self::insertQuery(is_array($table)?$table[0]:$table, $data);break;
+            case "UPDATE":$querry = self::updateQuery(is_array($table)?$table[0]:$table, $data, $condition);break;
+            default :
 
-    public static function isAssocArray($array = array()){
-        if(count($array)===0){
-            return -1;
         }
-        foreach ($array as $key => $value) {
-            if(!is_string($key)){
-                return false;
-            }
-        }
-        return false;
+        //echo "<br>{$querry}";
+        return $querry;
     }
 
-    public static function isFunction($value){
-        return preg_match("/^[A-Za-z_]+\([A-Za-z0-9,]*\){1}$/", $value);
-    }
 
-    public static function sort($column){
-        return is_null($column)?"":" ORDER BY {$column}";
-    }
-    public static function limit($numOfRows){
-        return is_numeric($numOfRows)?" LIMIT {$numOfRows}":"";
-    }
-    public static function offset($startPosition){
-        return is_numeric($startPosition)?" OFFSET {$startPosition}":"";
-    }
 
-    public function getStm()
-    {
-        return $this->stm;
-    }
 }
