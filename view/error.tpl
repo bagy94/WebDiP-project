@@ -1,6 +1,6 @@
 <section class="content">
-   <div class="err-box">
-       <p style="font-size: xx-large; color: #FFAB00;">
+   <div id="error-page" class="err-box">
+       <p style="font-size: xx-large" class="error">
            {$message}
        </p>
    </div>

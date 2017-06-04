@@ -1,7 +1,9 @@
 <?php
 
 namespace bagy94\model;
+use bagy94\utility\Application;
 use bagy94\utility\db\Db;
+use bagy94\utility\RegexUtility;
 
 require_once "Model.php";
 
@@ -15,16 +17,10 @@ class User extends Model
 {
     const QUERY_INIT_BY_ID = "SELECT * FROM  `users` WHERE  `user_id` = ?";
     const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= ?";
-    const Query_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
-    const REGEX_EMAIL = "";
-    const REGEX_USERNAME = "";
+    const QUERY_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
 
-    public static $QUERRY_INSERT ="INSERT INTO `users` VALUES 
-                                    (DEFAULT,:varUserName,:varEmail,:varPassword,:varPasswordHash,:varName,:varSurname,
-                                    :varBirthday,:varGender,0,:varLogInType,:varActivationHash,:varActHashCreatedAt,'',
-                                    :varTypeId,:varCreatedAt, 0)";
-
-
+    public static $QUERY_INSERT ="INSERT INTO `users` VALUES 
+(DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_created_at,:var_deleted)";
 
     public static $t = "users";
     public static $tId = "user_id";
@@ -36,55 +32,29 @@ class User extends Model
     public static $tSurname = "surname";
     public static $tBirthday = "birthday";
     public static $tGender = "gender";
-    public static $tNumberOfLogIns = "number_of_worng_log_in";
+    public static $tNumberOfLogIns = "number_of_wrong_log_in";
     public static $tLogInType = "log_in_type";
     public static $tActivationHash = "activation_hash";
     public static $tActivationHashCreatedAt = "activation_hash_created_at";
     public static $tActivationHashActivatedAt = "activation_hash_activated_at";
     public static $tTypeId = "type_id";
 
-    private $user_id,$user_name,$email,$password,$password_hash,$name,$surname,$birthday,
-            $gender,$number_of_wrong_log_in,$log_in_type,$activation_hash,$activation_hash_created_at,
-            $activation_hash_activated_at,$type_id;
+    protected $user_id,$user_name,$email,$password,$password_hash,$name,$surname,$birthday,
+            $gender,$number_of_wrong_log_in="0",$log_in_type,$activation_hash,$activation_hash_created_at,
+            $activation_hash_activated_at=NULL,$type_id=3;
 
 
     private $errors=[];
 
+
+    /**
+     * User constructor.
+     * @param int|null $id
+     * @param array $data
+     */
     public function __construct($id = NULL, array $data = array())
     {
-        parent::__construct($id, $data);
-    }
-
-    function getColumns()
-    {
-        return [
-            self::$tUserName,
-            self::$tEmail,
-            self::$tPassword,
-            self::$tPasswordHash,
-            self::$tName,
-            self::$tSurname,
-            self::$tBirthday,
-            self::$tGender,
-            self::$tNumberOfLogIns,
-            self::$tLogInType,
-            self::$tActivationHash,
-            self::$tActivationHashCreatedAt,
-            self::$tActivationHashActivatedAt,
-            self::$tTypeId
-        ];
-    }
-
-
-
-    function save($columns = array())
-    {
-
-    }
-
-    function init($constraint = NULL)
-    {
-        // TODO: Implement init() method.
+        parent::__construct($id,$data);
     }
 
     /**
@@ -96,17 +66,44 @@ class User extends Model
         return self::initBy(self::QUERY_INIT_BY_USER_NAME,[$userName]);
     }
 
-
     /**
      * Create instance of user by email or return null if email doesn't exist
      * @param $email
      * @return User|null
      */
     public static function initByEmail($email){
-        return self::initBy(self::Query_INIT_BY_EMAIL,[$email]);
+        return self::initBy(self::QUERY_INIT_BY_EMAIL,[$email]);
     }
 
 
+    public function registration(){
+        if(!isset($this->type_id)){
+            $this->type_id = "3";
+        }
+        if(!isset($this->password_hash)){
+            $this->password_hash = hash("sha256",$this->getPassword());
+        }
+        if(!isset($this->activation_hash)){
+            $this->setActivationHash(hash("md5",$this->getPassword()));
+            $this->setActivationHashCreatedAt(Application::appTimeStamp());
+        }
+        if(!isset($this->created_at)){
+            $this->created_at = Application::appTimeStamp();
+        }
+        $userData = $this->toParams([self::$tId]);
+        //print_r($userData);
+        if($this->connect(self::$QUERY_INSERT,$userData)->prepare()->runQuery()){
+            $this->setUserId($this->connection->lastId());
+        }
+        return $this->getUserId();
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasErrors(){
+        return count($this->errors);
+    }
     /**
      * Check is correct:
      * Name
@@ -119,20 +116,43 @@ class User extends Model
      * @return bool
      */
     public function isRegistrationCorrect(){
-        if(!isset($this->name)){array_push($this->errors,"Ime nije uneseno");}
-        else if($this->name[0] !== strtoupper($this->name[0]))array_push($this->errors,"Ime mora započinjati velikim slovom");
-        if(!isset($this->surname)){array_push($this->errors,"Prezime nije uneseno");}
-        else if($this->surname[0] !== strtoupper($this->surname[0]))array_push($this->errors,"Preyimeme mora započinjati velikim slovom");
-        if(!isset($this->email))array_push($this->errors,"Email nije unesen");
-        else if(!preg_match(self::REGEX_EMAIL,$this->email))array_push($this->errors,"Format email ne valja");
-        if(!isset($this->user_name))array_push($this->errors,"Korisničko ime nije uneseno");
-        elseif (count($this->user_name)<6)array_push($this->errors,"Korisničko ime mora biti više od 6 znakova");
-        elseif (!preg_match(self::REGEX_USERNAME,$this->user_name))array_push($this->errors,"Korisničko ime mora sadržavati velika slova i brojeve");
-        if(!isset($this->password))array_push($this->errors,"Loznika nije unesena");
-        elseif(!PasswordUtility::ckeck($this->password)){array_push($this->errors,"Lozinka mora sadržavati više od 6 znakova.\\n Mora imati 2 velika slova, 2 broja i 2 specijalna znaka.");}
-        if (!isset($this->gender))array_push($this->errors,"Spol nije unesen");
-        if (!isset($this->birthday))array_push($this->errors,"Datum rođenja nije unesen");
-        elseif (!preg_match(self::REGEX_BIRTHDAY))array_push($this->errors,"Datum rođenja nije u zadanom formatu");
+        //Check Name
+        if(!isset($this->name))
+            array_push($this->errors,"Ime nije uneseno");
+        else if($this->name[0] !== strtoupper($this->name[0]))
+            array_push($this->errors,"Ime mora započinjati velikim slovom");
+        //Check Surname
+        if(!isset($this->surname))
+            array_push($this->errors,"Prezime nije uneseno");
+        else if($this->surname[0] !== strtoupper($this->surname[0]))
+            array_push($this->errors,"Preyimeme mora započinjati velikim slovom");
+        //Check Email
+        if(!isset($this->email))
+            array_push($this->errors,"Email nije unesen");
+        else if(!RegexUtility::checkEmail($this->email))
+            array_push($this->errors,"Format email ne valja");
+        //Check Username
+        if(!isset($this->user_name))
+            array_push($this->errors,"Korisničko ime nije uneseno");
+        elseif (strlen($this->user_name)<6)
+            array_push($this->errors,"Korisničko ime mora biti više od 6 znakova");
+        elseif (!RegexUtility::checkUserName($this->user_name))
+            array_push($this->errors,"Korisničko ime mora sadržavati velika slova i brojeve");
+        //Check Password
+        if(!isset($this->password))
+            array_push($this->errors,"Loznika nije unesena");
+        elseif(!RegexUtility::checkPassword($this->password))
+            array_push($this->errors,"Lozinka mora sadržavati više od 6 znakova.\\n Mora imati 2 velika slova, 2 broja i 2 specijalna znaka.");
+
+        if (!isset($this->gender))
+            array_push($this->errors,"Spol nije unesen");
+
+        if (!isset($this->birthday))
+            array_push($this->errors,"Datum rođenja nije unesen");
+        elseif (!RegexUtility::isBirthdayFormat($this->birthday))
+            array_push($this->errors,"Datum rođenja nije u zadanom formatu");
+        else
+            $this->setBirthday(Application::dateFormat($this->getBirthday()));
         return !count($this->errors);
     }
 
@@ -413,8 +433,4 @@ class User extends Model
         $this->type_id = $type_id;
         return $this;
     }
-
-
-
-
 }

@@ -11,7 +11,5 @@ namespace bagy94\model;
 
 interface IModel
 {
-
     function save($columns=array());
-    function init($constraint=NULL);
 }

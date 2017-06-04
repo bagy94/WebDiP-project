@@ -87,6 +87,10 @@ header{
 
 }
 
+h1{
+    margin-left: 3%;
+}
+
 /**Menu*/
 nav.menu>ul{
     list-style-type: none;
@@ -234,15 +238,6 @@ form.box{
 select{
     font-size: larger;
 }
-.err-box{
-    border-left: 2px solid #D04C00;
-    border-right: 2px solid #D04C00;
-    width: 54%;
-    display: block;
-    float: right;
-    margin-right: 0.5%;
-    margin-top: 1px;
-}
 .input-error-icon{
     display: inline;
     vertical-align: top;
@@ -271,13 +266,67 @@ select{
     padding-top: 3px;
 }
 
-div.form-inline-element-wrapper.has-error{
-    padding: 3px 5px;
-    margin: 0px;
-}
 input{
     padding-left: 3px;
 }
 .hidden{
     display: none;
+}
+
+#error-page.err-box{
+    background-color: rgba(129, 101, 154, 0.79);
+    border: 2px solid red;
+    margin-top: 10%;
+    width: 70%;
+    display: inline-block;
+}
+#terms-of-cookie{
+    position: fixed;
+    /* bottom: 7px; */
+    top: 2%;
+    width: 50%;
+    margin-right: 25%;
+    margin-left: 25%;
+    height: 40px;
+    text-align: center;
+    z-index: 3;
+    background-color: rgba(129, 127, 160, 0.84);
+    border-radius: 7px;
+    box-shadow: 2px 3px 7px 1px #545454;
+}
+#terms-of-cookie>*{
+    display: inline-block;
+    margin: 8px 10px 4px 10px;
+    color: rgba(255, 239, 0, 0.78);
+}
+#terms-of-cookie>p{
+    margin-right: 4%;
+    font-style: oblique;
+    font-family: monospace;
+    font-size: 14px;
+}
+#terms-of-cookie>input{
+    margin-left: 6%;
+    width: 15%;
+    border: 2px solid rgba(255, 239, 0,1);
+    border-radius: 7px;
+    background-color: rgba(60, 58, 58, 0.54);
+    padding: 3px;
+}
+@media screen and (max-width: 600px){
+    #terms-of-cookie{
+        /* bottom: 2%; */
+        background-color: rgba(3, 0, 58, 0.95);
+        top: 89%;
+        width: 70%;
+        margin-right: 14%;
+        margin-left: 15%;
+    }
+    #terms-of-cookie>input{
+        background-color: rgba(100, 86, 109, 0.62);
+    }
+}
+
+form.box{
+    border: 2px solid rgba(30, 105, 30, 0.67)
 }

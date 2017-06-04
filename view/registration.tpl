@@ -1,6 +1,14 @@
 <section class="content form-box">
+    {if isset($errors)}
+        <div class="has-error">
+            {foreach from = $errors item=v}
+                {$v}
+            {/foreach}
+        </div>
+    {/if}
+
     <form action="{$formAction}" method="POST" class="box" id="form-registration">
-        <div class="form-inline-element-wrapper">
+        <div class="form-inline-element-wrapper" id="boxName">
             <label for="inputName">Ime</label>
             <input type="text" id="inputName" name="name" class="user-data">
         </div>
@@ -25,7 +33,7 @@
         </div>
         <div class="form-inline-element-wrapper">
             <label for="inputUserName">Korisničko ime</label>
-            <input type="text" id="inputUserName" name="user-name">
+            <input type="text" id="inputUserName" name="user_name">
         </div>
         <div class="form-inline-element-wrapper">
             <label for="inputEmail">Email</label>
@@ -37,7 +45,7 @@
         </div>
         <div class="form-inline-element-wrapper">
             <label for="inputPasswordCheck">Potvrda loznike</label>
-            <input type="password" id="inputPasswordCheck" name="password-check">
+            <input type="password" id="inputPasswordCheck" name="password_check">
         </div>
         <div class="form-inline-element-wrapper">
             <label for="selectLogInType">Tip prijave: </label>
@@ -50,6 +58,6 @@
             <div class="g-recaptcha" data-sitekey="{$recaptchaPublic}" data-theme="dark"></div>
         </div>
 
-        <input type="submit" id="btnSubmitUser" name="SubmitUser" value="Potvrdi" disabled>
+        <input type="submit" id="btnSubmitUser" name="SubmitUser" value="Potvrdi">
     </form>
 </section>

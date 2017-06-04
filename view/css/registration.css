@@ -30,23 +30,42 @@ input[type="submit"]{
 }
 @media screen and (max-width: 350px){
     .form-inline-element-wrapper>input:not([type="submit"]),#selectGender,#selectLogInType{
-        display: table-row;
+        display: inline-block;
         min-width: 95%;
-        max-width: 100%;
-        width: 100%;
+        max-width: 98%;
+        width: 98%;
         min-height: 33px;
     }
     .form-inline-element-wrapper>label{
         display: block;
         width: auto;
     }
+    div.form-inline-element-wrapper.has-error{
+        padding: 3px 3px 3px 1px;
+        margin: 2px 4px 4px 2px;
+    }
+    div.form-inline-element-wrapper.has-error>input:not([type="submit"]),
+    div.form-inline-element-wrapper.has-error>select
+    {
+        width: 95%;
+        max-width: 97%;
+    }
 
 }
 .form-inline-element-wrapper:first-child{
+    margin-top: 8px;
+}
+#boxName.form-inline-element-wrapper.has-error{
     margin-top: 8px;
 }
 .warning{
     text-align: center;
     font-size: 14px;
     color: #9fc755;
+}
+
+div.form-inline-element-wrapper.has-error{
+    width: 97%;
+    margin: 0px 8px 8px 4px;
+    padding: 2px 3px;
 }

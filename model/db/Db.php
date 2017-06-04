@@ -10,11 +10,18 @@ namespace bagy94\utility\db;
 require_once "DbResult.php";
 
 use bagy94\utility\db\DbResult;
+use bagy94\utility\UserSession;
 use \PDO as PDO;
 
 
 class Db
 {
+    private static $WRITE_LOG = "INSERT INTO `log` VALUES (DEFAULT,?,?,?,NOW(),0)";
+    private static $GET_LOGS = "SELECT * FROM `log` ";
+
+
+    private static $stmWriteLog = NULL;
+
     const dbFile = "db_data.ini";
     const dbQueryPrepPrefix = ":var";
 
@@ -43,9 +50,29 @@ class Db
         return $this;
     }
 
+
+    public function startTransaction(){
+        if(!isset($this->connection)){
+            $this->connect();
+        }
+        $this->connection->beginTransaction();
+    }
+
+    public function closeTransaction()
+    {
+        $this->connection->commit();
+    }
+
+    /**
+     * @return PDO
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
     /**
      * Prepare $stm
-     * @param $query string
      * @return Db
      */
     public function prepare(){
@@ -61,8 +88,7 @@ class Db
 
     /**
      * Execute $stm
-     * @param null $prepParams
-     * @return DbResult
+     * @return bool
      */
     public function query(){
         if(!isset($this->stm))$this->dbResult = new DbResult(0,NULL,"Query not prepared");
@@ -82,17 +108,33 @@ class Db
         }
         //echo "<br>QueryResult";
         //print_r($this->dbResult);
+        $this->log_prepared(UserSession::log());
         return $this->dbResult->success;
     }
 
+    /**
+     * @return bool
+     */
     public function runQuery(){
         if(!isset($this->stm) || !is_a($this->stm,"PDOStatement")){
             $this->prepare();
         }
+        $this->log_prepared(UserSession::log());
         return $this->stm->execute($this->queryParams);
     }
 
+    /**
+     * @return bool
+     */
+    public function isSucces()
+    {
+        return isset($this->dbResult) && $this->dbResult->success;
+    }
 
+
+    /**
+     * @return mixed|null
+     */
     public function data(){
         return $this->dbResult->getData();
     }
@@ -104,6 +146,9 @@ class Db
         if(isset($this->stm)){
             $this->stm->closeCursor();
         }
+        if($this->connection->inTransaction()){
+
+        }
         $this->stm = NULL;
         $this->connection= NULL;
     }
@@ -114,7 +159,7 @@ class Db
      */
     public static function getInstance() {
         $file = parse_ini_file(self::dbFile,TRUE);
-        if(!$file)throw new Exception ("Error: Cant open db_ini file");
+        if(!$file)throw new Exception ("ErrorController: Cant open db_ini file");
         $con = new PDO($file["database"]["dsn"],$file["database"]["user"],$file["database"]["pass"]);
         $con->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
         unset($file);
@@ -157,12 +202,6 @@ class Db
     {
         $this->queryParams = $queryParams;
     }
-
-    public function make($keyword,$table=array(),$data = array(),$condition=NULL,$options = NULL){
-
-    }
-
-
 
     public function makeSelect($tables=[],$columns=[],$constraint=[],$options=NULL,$constraintGlue="AND"){
         $col = isset($columns) && count($columns)?implode(",",$columns):"*";
@@ -210,10 +249,6 @@ class Db
     }
 
 
-
-
-
-
     public static function sort($column){
         return is_null($column)?"":" ORDER BY {$column}";
     }
@@ -238,14 +273,9 @@ class Db
 
     public static function isAssocArray($array = array()){
         if(count($array)===0){
-            return -1;
+            return FALSE;
         }
-        foreach ($array as $key => $value) {
-            if(!is_string($key)){
-                return false;
-            }
-        }
-        return false;
+        return is_string(key($array));
     }
 
     public static function isFunction($value){
@@ -254,6 +284,28 @@ class Db
 
 
 
+
+    private static function stmLog($inTransacionPDO=NULL)
+    {
+        if(!isset(self::$stmWriteLog)){
+            $connection = Db::getInstance();
+            self::$stmWriteLog = $connection->prepare(self::$WRITE_LOG);
+        }
+        return self::$stmWriteLog;
+    }
+
+    public function writeLog($keyword,$content,$user)
+    {
+        self::stmLog()->execute([$keyword,$content,$user]);
+        return $this;
+    }
+
+
+    public function log_prepared(){
+        $query = str_replace("'","",$this->query);
+        $params = is_array($this->queryParams)?":[".implode(";",$this->queryParams)."]": "";
+        return $this->writeLog("db",$query.$params,UserSession::log());
+    }
 
 
 
@@ -331,6 +383,11 @@ class Db
         return $querry;
     }
 
-
+    public function getLogs($options=""){
+        if(!isset($this->connection)){
+            $this->connect()->setQuery(self::$GET_LOGS.$options);
+        }
+        return $this->prepare()->getStm()->execute();
+    }
 
 }

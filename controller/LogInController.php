@@ -7,11 +7,10 @@
  */
 
 namespace bagy94\controller;
-use bagy94\utility\PageSettings;
+use bagy94\model\Log;
+use bagy94\model\User;
 use bagy94\utility\Router;
-use bagy94\utility\WebPage;
-
-require_once "Controller.php";
+use bagy94\utility\UserSession;
 
 class LogInController extends Controller
 {
@@ -22,11 +21,7 @@ class LogInController extends Controller
 
     public static $KEY = "login";
 
-    protected $actions = ["index","submit","postCode","check"];
-    protected $templates = [
-        "view/login_step_1.tpl",
-        "view/login_step_2.tpl"
-    ];
+    private $errors=[];
 
     function __construct()
     {
@@ -34,12 +29,15 @@ class LogInController extends Controller
         $this->initFiles();
     }
 
-    function index()
+    function index($step=NULL)
     {
-        Router::reqHTTPS(self::$KEY,$this->actions[0]);
+        Router::reqHTTPS(self::$KEY,$this->actions()[0]);
         $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
+        if(count($this->errors)){
+            $this->pageAdapter->assign("errors",$this->errors);
+        }
 
-
+        Log::visit("Prijava",UserSession::log());
         return $this->render($this->pageAdapter->getHTML());
     }
 
@@ -51,12 +49,20 @@ class LogInController extends Controller
     function submit(){
 
         if(isset($_POST[self::ARG_POST_USERNAME]) && isset($_POST[self::ARG_POST_USERNAME])){
-            $username = filter_input(INPUT_POST,self::ARG_POST_USERNAME,FILTER_SANITIZE_STRING);
-            $password = filter_input(INPUT_POST,self::ARG_POST_PASSWORD,FILTER_SANITIZE_STRING);
-        }else{
+            $username = $this->filter_post(self::ARG_POST_USERNAME);
+            $user = User::initByUserName($username);
 
+            if($user !== NULL){
+
+            }else{
+                $this->errors = ["Korisnik ne postoji!"];
+            }
+
+        }else{
+            return $this->index();
         }
 
+        Log::action("Prijava", $username);
         return $this->render($this->pageAdapter->getHTML(1));
     }
     function postCode(){
@@ -72,4 +78,25 @@ class LogInController extends Controller
 
     }
 
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions()
+    {
+        return ["index","submit","postCode","check"];
+    }
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates()
+    {
+        return ["view/login_step_1.tpl", "view/login_step_2.tpl"];
+    }
+    private function filter_post($varName,$filter=FILTER_SANITIZE_STRING){
+        return filter_input(INPUT_POST,$varName,$filter);
+    }
 }

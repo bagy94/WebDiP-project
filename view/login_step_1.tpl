@@ -1,4 +1,11 @@
 <section class="content form-box">
+    {if isset($errors)}
+        {foreach from = $errors item = v}
+            <div class="box has-error">
+                <p>{$v}</p>
+            </div>
+        {/foreach}
+    {/if}
     <form action="{$actionSubmit}" method="POST" id="formLogIn" class="box">
         <div class="form-inline-element-wrapper">
             <label for="inputUserNameLogIn" id="lblUserName">Korisničko ime</label>

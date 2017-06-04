@@ -32,7 +32,7 @@ class Service extends Model
     public static $tDescription = "description";
 
 
-    private $service_id,$assignment_id,$name,$duration,$price,$description;
+    protected $service_id,$assignment_id,$name,$duration,$price,$description;
 
 
 
@@ -168,14 +168,13 @@ class Service extends Model
      * @return DbResult
      */
     public static function getServiceFromReservationByCategory($categoryId, $reservationState, $limit=3){
-        $db = new Db();
-        $db->connect();
-        $db->setQuery(self::TOP_3_RESERVED." LIMIT $limit");
-        $db->prepare();
-        $db->getStm()->execute([":varCategoryId"=>$categoryId,":varReservationState"=>$reservationState]);
-        $result = new DbResult($db->getStm()->rowCount(),[]);
-        while (($obj = $db->getStm()->fetchObject(__CLASS__))){
-            $result->appendRow($obj);
+        $db = new Db(self::TOP_3_RESERVED." LIMIT $limit",[":varCategoryId"=>$categoryId,":varReservationState"=>$reservationState]);
+        $result = new DbResult($db->connect()->prepare()->runQuery(),array());
+        if($result->success){
+            while (($obj = $db->getStm()->fetchObject(__CLASS__))){
+                //print_r($obj);
+                $result->appendRow($obj);
+            }
         }
         $db->disconnect();
         return $result;

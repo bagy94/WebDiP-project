@@ -8,17 +8,24 @@
 
 
 namespace bagy94\controller;
-require_once "utility/WebPage.php";
-require_once "IController.php";
 use bagy94\utility\Response;
 use bagy94\utility\Router;
 use bagy94\utility\WebPage;
-use SimpleXMLElement;
 
 abstract  class Controller implements IController
 {
     const RESPONSE_JSON = "json";
     const RESPONSE_XML = "xml";
+
+    private static $controllers=[
+        "home"=>"HomeController",
+        "login"=>"LogInController",
+        "registration"=>"RegistrationController",
+        "doc"=>"DocumentationController",
+        "about"=>"AboutController",
+        "theme"=>"ThemeService"
+    ];
+
     /***
      * String used for url rewrite
      * Implement it in child
@@ -29,12 +36,12 @@ abstract  class Controller implements IController
      * Array of possible actions on object
      * @var array $actions
      */
-    protected $actions=[];
+    private $actions=[];
     /***
      * Array of possible templates in controller
      * @var array $templates
      */
-    protected $templates=[];
+    private $templates=[];
 
     /***
      * ViewAdapter
@@ -49,6 +56,9 @@ abstract  class Controller implements IController
      */
     function __construct($title, $keywords="page")
     {
+        $this->actions = $this->actions();
+        $this->templates = $this->templates();
+        self::$KEY = $this::$KEY;
         $this->pageAdapter = new WebPage($this->templates,$title,NULL,$keywords);
     }
 
@@ -57,13 +67,13 @@ abstract  class Controller implements IController
      */
     function hasAction($action)
     {
-        return is_array($this->actions) && in_array($action,$this->actions);
+        return is_array($this->actions) && in_array($action,$this->actions) && method_exists($this,$action);
     }
 
     /***
      * @inheritdoc
      */
-    function invoke($action, $args = NULL)
+    function invokeAction($action, $args = NULL)
     {
         return $this->{$action}($args);
     }
@@ -102,5 +112,49 @@ abstract  class Controller implements IController
      */
     public function render($data, $responseType="HTML"){
         return new Response($data,$responseType);
+    }
+
+    protected function selfInvoke($action,$args=NULL){
+        if($this->hasAction($action)){
+            $response = $this->invokeAction($action,$args);
+        }
+        else{
+            $error = new ErrorController("Action not found");
+            $response = $error->invokeAction("index");
+        }
+        return $response;
+    }
+
+    public static function invokeController($controller,$action,$ars=NULL)
+    {
+        if(array_key_exists($controller,self::$controllers)){
+            $class =sprintf("%s\\%s",__NAMESPACE__,self::$controllers[$controller]);
+            if(class_exists($class)){
+                $active = new $class();
+            }
+            else{
+                $active = new ErrorController("404 page not found");
+                $action = "index";
+            }
+        }else{
+            $active = new ErrorController("404 page not found");
+            $action = "index";
+        }
+        //print_r($active);
+        if($active->hasAction($action)){
+            $response = $active->invokeAction($action,$ars);
+        }
+        else{
+            $error = new ErrorController("Action not found");
+            $response = $error->invokeAction("index");
+        }
+        $response->show();
+    }
+
+    protected static function redirect($controller,$action="index",$args=NULL)
+    {
+        $url = Router::make($controller,$action,$args);
+        header("Location: $url");
+        exit(1);
     }
 }

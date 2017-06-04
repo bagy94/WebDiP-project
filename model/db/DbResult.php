@@ -22,7 +22,7 @@ class DbResult
      * @param mixed $dataSet
      * @param string $msg
      */
-    public function __construct($success=0, $dataSet=NULL, $msg=NULL)
+    public function __construct($success=0, $dataSet=[], $msg=NULL)
     {
         $this->success = $success;
         $this->dataSet = $dataSet;

@@ -7,16 +7,11 @@
  */
 
 namespace bagy94\controller;
-use bagy94\utility\PageSettings;
 use bagy94\utility\Router;
-
-require_once "Controller.php";
 
 class DocumentationController extends Controller
 {
     public static $KEY="doc";
-    protected $actions = ["index"];
-    protected $templates = ["view/doc.tpl"];
 
     function __construct()
     {
@@ -26,5 +21,23 @@ class DocumentationController extends Controller
     function index(){
         $this->pageAdapter->getSettings()->addAsset(Router::asset("era"),"era");
         return $this->render($this->pageAdapter->getHTML());
+    }
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions()
+    {
+        return ["index"];
+    }
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates()
+    {
+        return ["view/doc.tpl"];
     }
 }

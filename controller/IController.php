@@ -19,11 +19,23 @@ interface IController
      * @param null|mixed $args
      * @return Response
      */
-    function invoke($action,$args=NULL);
+    function invokeAction($action,$args=NULL);
     /**
      * Check if controller has action
      * @param string $action
      * @return bool
      */
     function hasAction($action);
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions();
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates();
 }

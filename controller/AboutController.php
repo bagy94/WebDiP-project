@@ -27,4 +27,22 @@ class AboutController extends Controller
         $this->pageAdapter->getSettings()->addAsset(Router::asset("me","jpg"),"me");
         return $this->render($this->pageAdapter->getHTML());
     }
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions()
+    {
+        // TODO: Implement actions() method.
+    }
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates()
+    {
+        // TODO: Implement templates() method.
+    }
 }

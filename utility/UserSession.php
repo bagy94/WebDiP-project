@@ -16,6 +16,7 @@ class UserSession
     const REGULAR = "3";
     const KEY_USER_ID = "user_id";
     const KEY_USER_TYPE = "type_id";
+    const KEY_USERNAME = "username";
     /***
      * @var Session $session
      */
@@ -43,6 +44,14 @@ class UserSession
         // TODO: Implement __clone() method.
     }
 
+
+    public static function start($userid,$typeid,$username)
+    {
+        self::session()->startSession();
+        self::session()->set(self::KEY_USER_ID,$userid);
+        self::session()->set(self::KEY_USER_TYPE,$typeid);
+        self::session()->set(self::KEY_USERNAME,$username);
+    }
     /**
      * Checks if user id is in session variable
      * @return bool
@@ -81,12 +90,25 @@ class UserSession
     }
 
     /**
+     * Get user name from session
+     * @return string|null
+     */
+    public static function getUserName(){
+        return Session::get(self::KEY_USERNAME);
+    }
+
+    /**
      * Get user type from session
      * @return string|null
      */
     public static function getUserType()
     {
         return Session::get(self::KEY_USER_TYPE);
+    }
+
+    public static function log()
+    {
+        return self::isLogIn()?self::getUserName():$_SERVER["REMOTE_ADDR"];
     }
 
 }

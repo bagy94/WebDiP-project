@@ -20,6 +20,8 @@ function isEmpty(element){
     switch(tag){
         case "input":
             switch(type){
+                case "password":
+                case "email":
                 case "text":
                     return isEmptyText(element);
                 case "file":
@@ -101,7 +103,7 @@ function getActiveTheme(onThemeFetched){
 }
 
 function addError(element,errorId,errorMsg) {
-    if($(element).next("#errno-"+errorId).length === 0){
+    if($(element).parent().children("#errno-"+errorId).length === 0){
         $(
             '<div class="error" id="errno-'+errorId+'">' + errorMsg + '</div>'
         ).insertAfter(element);
@@ -109,13 +111,63 @@ function addError(element,errorId,errorMsg) {
     $(element).parent().addClass("has-error");
 }
 function removeError(element,errorId) {
-    $(element).next("#errno-"+errorId).remove();
-    if($(element).next(".error").length === 0){
+    $(element).parent().children("#errno-"+errorId).remove();
+    if($(element).parent().children(".error").length === 0){
         $(element).parent().removeClass("has-error");
     }
 }
 
-HTMLInputElement.prototype.isFirstUppercase = function(){
-    return this.value[0] === this.value[0].toUpperCase();
-};
+function isFirstBigLetter(value) {
+    return value[0] === value[0].toUpperCase();
+}
+
+function defaultArg(arg,val) {
+    return typeof arg !== 'undefined' ? arg : val;
+}
+
+function setCookie(name,value,exp) {
+    var ck = name+"="+value;
+    var expires = " expires="+exp;
+    document.cookie = ck+";"+expires+";path=/";
+}
+
+function getCookie(name){
+    var cookies =document.cookie.split(";")
+    for(var i =0;i<cookies.length;i++){
+        var split = cookies[i].split("=");
+        var cookieName = split[0].replace(/\s+/,"");
+        if(cookieName == name){
+            return split[1];
+        }
+    }
+    return -1;
+}
+function isCookieExpired(name) {
+    return document.cookie.indexOf(name) === -1;
+}
+
+$(document).ready(function () {
+    var cookie = getCookie("master_cookie");
+    if(cookie === -1){
+        showTermsOfAgreementCookie();
+        /**/
+    }
+});
+
+function showTermsOfAgreementCookie(){
+    var color = $("header").css("background-color");
+    $('<div class="box" id="terms-of-cookie">' +
+        '<p>Koriste se kolačići</p>' +
+            '<input type="button" id="btn-cookie-accept" value="Oke" onclick="onCookieButtonClick();">'+
+        '</div>').insertBefore("footer");
+}
+function onCookieButtonClick() {
+    var date = new Date();
+    var expire = 3*24*60*60*1000;
+    date.setTime(date.getTime()+expire);
+    setCookie("master_cookie","accepted",date.toUTCString());
+    $("#terms-of-cookie").css("display","none");
+}
+
+
 

@@ -7,9 +7,33 @@
  */
 
 namespace bagy94;
+require_once "connection.php";
+require_once "utility/UserSession.php";
+spl_autoload_register(function ($class){
+    //var_dump($class);
+    $className= end(explode("\\",$class));
+    if(file_exists("controller/$className.php")){
+        //var_dump($className);
+        require_once "controller/$className.php";
+    }
+    else if(file_exists("utility/$className.php")){
+        //var_dump($className);
+        require_once "utility/$className.php";
+    }
+    else if(file_exists("model/$className.php")){
+        //var_dump($className);
+        require_once "model/$className.php";
+    }
+    else if(file_exists("view/$className.php")){
+        //var_dump($className);
+        require_once "view/$className.php";
+    }else if(file_exists("service/$className.php")){
+        require_once "service/$className.php";
+    }
+});
 
-require_once "application.php";
 use bagy94\utility\Router;
+use bagy94\controller\Controller;
 
 if(isset($_GET[Router::ROUTE])){
     $route = filter_input(INPUT_GET,Router::ROUTE,FILTER_SANITIZE_URL);
@@ -22,4 +46,4 @@ else{
 }
 
 $request = Router::decode($route);
-callController($request['controller'],$request['action'],$request["args"])->show();
+Controller::invokeController($request['controller'],$request['action'],$request["args"]);

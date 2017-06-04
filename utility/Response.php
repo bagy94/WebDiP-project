@@ -14,6 +14,10 @@ class Response
     const RESPONSE_HTML="HTML";
     const RESPONSE_JSON = "JSON";
     const RESPONSE_XML = "XML";
+
+
+    private $newUrl = NULL;
+
     private $content;
     private $type;
 
@@ -22,6 +26,25 @@ class Response
         $this->content = $content;
         $this->type = $responseType;
     }
+
+
+    /**
+     * @param mixed $content
+     */
+    public function setContent($content)
+    {
+        $this->content = $content;
+    }
+
+    /**
+     * @param string $type
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+    }
+
+
 
     public function asHTML(){
         header("Content-type: text/html");
@@ -46,5 +69,9 @@ class Response
             default:
                 $this->asHTML();
         }
+    }
+
+    public function setNewUrl($url){
+        $this->newUrl = $url;
     }
 }

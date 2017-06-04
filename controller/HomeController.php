@@ -7,12 +7,12 @@
  */
 
 namespace bagy94\controller;
-require_once "model/ServiceCategory.php";
 
+use bagy94\model\Log;
 use bagy94\model\Service;
 use bagy94\model\ServiceCategory;
-use bagy94\utility\PageSettings;
-use bagy94\utility\WebPage;
+use bagy94\model\User;
+use bagy94\utility\UserSession;
 use SimpleXMLElement;
 
 class HomeController extends Controller
@@ -20,8 +20,6 @@ class HomeController extends Controller
     const ARG_POST_SERVICE_CATEGORY_ID = "scid";
     const VIEW_VAR_ITEMS = "items";
     public static $KEY = "home";
-    protected $actions = ["index","services"];
-    protected $templates = ["view/index.tpl"];
 
     function __construct()
     {
@@ -43,6 +41,7 @@ class HomeController extends Controller
         $this->pageAdapter->assign(self::VIEW_VAR_ITEMS,$categoryList);
         $this->pageAdapter->getSettings()->addJsLocal("index");
         $this->pageAdapter->getSettings()->addCssLocal("index");
+        Log::visit("Početna",UserSession::log());
         return $this->render($this->pageAdapter->getHTML());
     }
     //isset($_GET[self::ARG_POST_SERVICE_CATEGORY_ID]
@@ -61,9 +60,6 @@ class HomeController extends Controller
         }
         $result = Service::getServiceFromReservationByCategory($scid,1);
         if($result->success){
-            /***
-             * @var Service[] $arr
-             */
             $arr = $result->getData();
             foreach ($arr as $service){
                 $child = $xml->addChild("service",$service->getServiceId());
@@ -74,8 +70,27 @@ class HomeController extends Controller
             }
         }
         else{
-            $xml->addAttribute("message","Nema rezervacija za kategoriju {$scid}");
+            $xml->addAttribute("message","Nema rezervacija");
         }
+        Log::service("Usluge/ kategorija[$scid]",UserSession::log());
         return $this->render($xml,"XML");
+    }
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions()
+    {
+        return ["index","services"];
+    }
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates()
+    {
+        return ["view/index.tpl"];
     }
 }

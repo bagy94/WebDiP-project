@@ -7,11 +7,12 @@
  */
 
 namespace bagy94\controller;
-require_once "Controller.php";
+use bagy94\model\Log;
 use bagy94\model\User;
-use bagy94\utility\PageSettings;
+use bagy94\utility\Application;
 use bagy94\utility\Response;
 use bagy94\utility\Router;
+use bagy94\utility\UserSession;
 use SimpleXMLElement;
 
 
@@ -21,97 +22,164 @@ class RegistrationController extends Controller
     const VAR_VIEW_RECAPTCHA_KEY_PUBL = "recaptchaPublic";
 
     const RECAPTCHA_PUBLIC = "6Lfv5B4TAAAAAFcbKtuJkDlXQbt3JZylci6rjSK7";
-    private static $RECAPTCHA_SECRET = "6Lfv5B4TAAAAAPBdFjZlwdpmsTCYqgYG8bTglypR";
+    const RECAPTCHA_SECRET = "6Lfv5B4TAAAAAPBdFjZlwdpmsTCYqgYG8bTglypR";
 
-
-    const ARG_POST_USER_NAME = "user-name";
+    const ARG_POST_USER_NAME = "username";
     const ARG_POST_EMAIL = "email";
 
     public static $KEY = "registration";
-    protected $actions = [
-        "index","postSubmit","service_check"
-    ];
-    protected $templates = [
-        "view/registration.tpl"
-    ];
+
+    private $formHasErrors = [];
+    /***
+     * @var User|null $user
+     */
+    private $user = NULL;
 
     function __construct()
     {
         parent::__construct("Registracija", "registracija");
     }
 
+
+    /**
+     * Returns array of possible actions
+     * @return callable[]
+     */
+    function actions()
+    {
+        return ["index","service","postForm"];
+    }
+
+    /**
+     * Returns array of templates in controller
+     * @return string[]
+     */
+    function templates()
+    {
+        return ["view/registration.tpl"];
+    }
+
     function index()
     {
         Router::reqHTTPS("registration","index");
         $this->pageAdapter->assignArrayOfVar([
-            self::VAR_VIEW_FORM_ACTION=>$this->formAction(1),
+            self::VAR_VIEW_FORM_ACTION=>$this->formAction(2),
             self::VAR_VIEW_RECAPTCHA_KEY_PUBL=>self::RECAPTCHA_PUBLIC
         ]);
+        if(is_array($this->formHasErrors) && count($this->formHasErrors)){
+            $this->pageAdapter->assign("errors",$this->formHasErrors);
+        }
         $this->initFiles();
 
+        Log::visit("Registracija",UserSession::log());
         return $this->render($this->pageAdapter->getHTML());
 
     }
-
-    function service_check($args){
-        $xml = new SimpleXMLElement("<check/>");
-        switch ($args){
-            case self::ARG_POST_USER_NAME:
-                $username = filter_input(INPUT_POST,self::ARG_POST_USER_NAME,FILTER_SANITIZE_STRING);
-                if($username){
-                    $xml->addAttribute("success",1);
-                    $user = User::initByUserName($username);
-                    if(is_null($user)){
-                        $xml->addAttribute("exist",0);
-                        $xml->addAttribute("message","Korisnik ne postoji");
-                    }else{
-                        $xml->addAttribute("exist",1);
-                        $xml->addAttribute("message","Korisnik postoji");
-                    }
-                }
-                else{
-                    $xml->addAttribute("success",0);
-                    $xml->addAttribute("message","Korisničko ime nije u ispravnom formatu");
-
-                }
+    function service($arg){
+        $xmlRoot = new SimpleXMLElement("<service/>");
+        //print_r($_POST);
+        switch ($arg){
+            case "user-name":
+                $exist = $this->checkUserName();
                 break;
             case self::ARG_POST_EMAIL:
-                $email = filter_input(INPUT_POST,self::ARG_POST_EMAIL,FILTER_SANITIZE_STRING);
-                if($email){
-                    $xml->addAttribute("success",1);
-                    $user = User::initByEmail($email);
-                    if(is_null($user)){
-                        $xml->addAttribute("exist",0);
-                        $xml->addAttribute("message","Korisnik ne postoji");
-                    }else{
-                        $xml->addAttribute("exist",1);
-                        $xml->addAttribute("message","Korisnik postoji");
-                    }
-                }
-                else{
-                    $xml->addAttribute("success",0);
-                    $xml->addAttribute("message","Korisničko ime nije u ispravnom formatu");
-
-                }
+                $exist = $this->checkEmail();
                 break;
             default:
-                $xml->addAttribute("success",0);
-                $xml->addAttribute("message","Nisu uneseni ispravni parametri");
+                $exist = "-2";
         }
-        return $this->render($xml,Response::RESPONSE_XML);
+        if(!$exist){
+            $xmlRoot->addAttribute("success",1);
+            $xmlRoot->addAttribute("exist",0);
+            $xmlRoot->addAttribute("message","Korisnik ne postoji");
+        }else if($exist < "0"){
+            $xmlRoot->addAttribute("success",0);
+            $xmlRoot->addAttribute("message","Krivo uneseni podatak");
+        }else{
+            $xmlRoot->addAttribute("success",1);
+            $xmlRoot->addAttribute("exist",1);
+            $xmlRoot->addAttribute("message","Korisnik već postoji");
+        }
+        return $this->render($xmlRoot,Response::RESPONSE_XML);
     }
-    function checkEmail(){}
 
-
-    function postSubmit(){
-
+    function postForm(){
+        if(!$this->recaptchaCheck()){
+            $this->formHasErrors = ["Recaptcha nije unesena"];
+            return $this->selfInvoke("index");
+        }
+        $this->user = new User();
+        $this->user->setName($this->filterInput("name"));
+        $this->user->setSurname($this->filterInput("surname"));
+        $this->user->setBirthday($this->filterInput("birthday"));
+        $this->user->setGender($this->filterInput("gender"));
+        $this->user->setUserName($this->filterInput("user_name"));
+        $this->user->setEmail($this->filterInput("email"));
+        $this->user->setPassword($this->filterInput("password"));
+        $this->user->setLogInType($this->filterInput("log-in-type"));
+        //print_r($this->user);
+        if(!$this->user->isRegistrationCorrect()){
+            Log::action("Neuspiješna registracija/".$this->user->getUserName(),$this->user->getUserName());
+            $this->formHasErrors = $this->user->getErrors();
+            return $this->index();
+        }else{
+            Log::action("Registracija/".$this->user->getUserName(),$this->user->getUserName());
+            if($this->user->registration()){
+                return self::redirect("login","index");
+            }
+        }
+        //print_r($this->user);
+        return $this->index();
     }
-
 
 
     private function initFiles(){
         $this->pageAdapter->getSettings()->addJS("https://www.google.com/recaptcha/api.js");
         $this->pageAdapter->getSettings()->addCSSLocal("registration");
         $this->pageAdapter->getSettings()->addJsLocal("registration");
+    }
+
+    private function checkUserName()
+    {
+        $username = filter_input(INPUT_POST, self::ARG_POST_USER_NAME, FILTER_SANITIZE_STRING);
+        Log::service("Registracija/provjera korisničkog imena [$username]");
+        return $username?!is_null(User::initByUserName($username)):-1;
+    }
+
+    private function checkEmail()
+    {
+        $email = filter_input(INPUT_POST,self::ARG_POST_EMAIL,FILTER_SANITIZE_EMAIL);
+        Log::service("Registracija: provjera email [$email]");
+        return $email?!is_null(User::initByEmail($email)):-1;
+    }
+    private function filterInput($name,$filter=FILTER_SANITIZE_STRING,$method=INPUT_POST){
+        return filter_input($method,$name,$filter);
+    }
+    private function recaptchaCheck(){
+        $url = "https://www.google.com/recaptcha/api/siteverify";
+        $value = $this->filterInput("g-recaptcha-response");
+        try {
+            $data = [
+                'secret'   => self::RECAPTCHA_SECRET,
+                'response' => $value,
+                'remoteip' => $_SERVER['REMOTE_ADDR']
+            ];
+
+            $options = [
+                'http' => [
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method'  => 'POST',
+                    'content' => http_build_query($data)
+                ]
+            ];
+
+            $context  = stream_context_create($options);
+            $result = file_get_contents($url, false, $context);
+            //print_r($result);
+            return json_decode($result)->success == "true";
+        }
+        catch (Exception $e) {
+            return FLASE;
+        }
     }
 }

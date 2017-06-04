@@ -7,9 +7,7 @@
  */
 
 namespace bagy94\utility;
-require_once "UserSession.php";
-use bagy94\utility\UserSession as Session;
-use bagy94\utility\Router;
+use bagy94\utility\UserSession;
 
 class PageSettings
 {
@@ -65,11 +63,11 @@ class PageSettings
      */
     public function createMenu()
     {
-        switch (Session::getUserType()) {
-            case Session::ADMINISTRATOR:
+        switch (UserSession::getUserType()) {
+            case UserSession::ADMINISTRATOR:
                 $this->addMenuLink("Postavke sustava", Router::make("admin", "indexSett ings"));
-            case Session::MODERATOR:
-            case Session::REGULAR:
+            case UserSession::MODERATOR:
+            case UserSession::REGULAR:
             default:
                 $this->addMenuLink("Početna", Router::make("home", "index"));
                 $this->addMenuLink("Prijava", Router::make("login", "index"));

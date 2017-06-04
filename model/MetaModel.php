@@ -3,7 +3,8 @@ namespace bagy94\model;
 
 require_once "db/Db.php";
 
-use bagy94\utility\db\Db as DbConnection;
+use bagy94\utility\db\Db;
+
 /**
  * Created by PhpStorm.
  * User: bagy
@@ -19,19 +20,16 @@ abstract class MetaModel
      * REGEX_COLUMNS-used for getting column name variables
      * REGEX_TAGS-cover all tags on object
     */
-    const REGEX_COLUMNS = "/^(t[A-Z]{1}[a-zA-z\_]+|t{1})$/";
+    const REGEX_COLUMNS = "/^(t[A-Z]{1}[a-zA-z\_]+)$/";
     /***
-     * @var DbConnection $connection
+     * @var Db $connection
      */
     protected $connection;
 
-    protected $created_at,$deleted;
-
-
-
-    public function connect(){
-        $this->connection = DbConnection::getInstance();
+    public function connect($query="",$params=[]){
+        $this->connection = new Db($query,$params);
         $this->connection->connect();
+        return $this->connection;
     }
 
     public function disconnect(){
@@ -39,42 +37,6 @@ abstract class MetaModel
             $this->connection->disconnect();
         }
         $this->connection = NULL;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCreatedAt()
-    {
-        return $this->created_at;
-    }
-
-    /**
-     * @param mixed $created_at
-     * @return MetaModel
-     */
-    public function setCreatedAt($created_at)
-    {
-        $this->created_at = $created_at;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDeleted()
-    {
-        return $this->deleted;
-    }
-
-    /**
-     * @param mixed $deleted
-     * @return MetaModel
-     */
-    public function setDeleted($deleted)
-    {
-        $this->deleted = $deleted;
-        return $this;
     }
 
     /**
@@ -86,16 +48,15 @@ abstract class MetaModel
     }
 
 
-
-
     /**
      * @return array
      */
     public function columns()
     {
-        return array_keys(array_filter(get_class_vars(get_called_class()), function($k){
-            return preg_match(self::REGEX_COLUMNS,$k);
-        },ARRAY_FILTER_USE_KEY));
+        $vars = array_keys(get_class_vars(get_called_class()));
+        return array_filter($vars,function($var){
+            return preg_match(self::REGEX_COLUMNS,$var);
+        });
     }
 
     public static function filterArray($array,$handler){
@@ -109,6 +70,4 @@ abstract class MetaModel
         return $fileterdArray;
     }
 
-
-    abstract function getColumns();
 }
