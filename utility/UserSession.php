@@ -108,7 +108,7 @@ class UserSession
 
     public static function log()
     {
-        return self::isLogIn()?self::getUserName():$_SERVER["REMOTE_ADDR"];
+        return self::isLogIn()?self::getUserId():NULL;
     }
 
 }
