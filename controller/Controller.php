@@ -14,8 +14,17 @@ use bagy94\utility\WebPage;
 
 abstract  class Controller implements IController
 {
+    const SYSTEM_ERROR_QUERY = 21;
+    const SYSTEM_ERROR_READING_PARAMS = 22;
+    const ACTION_SERVICE_XML = 13;
+    const ACTION_SERVICE_JSON = 12;
+
     const RESPONSE_JSON = "json";
     const RESPONSE_XML = "xml";
+
+    protected static $error=NULL;
+
+    private static $errorTmpl = ["view/error.tpl"];
 
     private static $controllers=[
         "home"=>"HomeController",
@@ -135,22 +144,13 @@ abstract  class Controller implements IController
             if(class_exists($class)){
                 $active = new $class();
             }
-            else{
-                $active = new ErrorController("404 page not found");
-                $action = "index";
-            }
-        }else{
-            $active = new ErrorController("404 page not found");
-            $action = "index";
         }
         //print_r($active);
-
-        if($active->hasAction($action)){
+        if(isset($active) && $active->hasAction($action)){
             $response = $active->invokeAction($action,$args);
         }
         else{
-            $error = new ErrorController("Action not found");
-            $response = $error->invokeAction("index");
+            $response = self::error("404 Page not found");
         }
         $response->show();
     }
@@ -160,5 +160,22 @@ abstract  class Controller implements IController
         $url = Router::make($controller,$action,$args);
         header("Location: $url");
         exit(1);
+    }
+    protected function filterPost($varName,$post=NULL,$filter=NULL){
+        if($post === NULL){
+            $post = INPUT_POST;
+        }
+        if($filter === NULL){
+            $filter = FILTER_SANITIZE_STRING;
+        }
+        return filter_input($post,$varName,$filter);
+    }
+
+    protected function error($message){
+        if(!isset(self::$error)){
+            self::$error = new WebPage(self::$errorTmpl,"Greška",NULL,"error 420");
+        }
+        self::$error->assign("message",$message);
+        return new Response(self::$error->getHTML());
     }
 }

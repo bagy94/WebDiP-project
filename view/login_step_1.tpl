@@ -1,10 +1,8 @@
 <section class="content form-box">
-    {if isset($errors)}
-        {foreach from = $errors item = v}
+    {if isset($error)}
             <div class="box has-error">
-                <p>{$v}</p>
+                <p>{$error}</p>
             </div>
-        {/foreach}
     {/if}
     <form action="{$actionSubmit}" method="POST" id="formLogIn" class="box">
         <div class="form-inline-element-wrapper">

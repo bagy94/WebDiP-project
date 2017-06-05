@@ -27,8 +27,9 @@ class Configuration extends Model
     public static $tInterval = "interval";
     public static $tTableRows = "no_rows";
     public static $tActivationLinkDuration = "activation_link_duration";
+    public static $tMaxLogIn = "max_login";
 
-    protected $id,$interval,$activation_link_duration,$no_rows;
+    protected $id,$interval,$activation_link_duration,$no_rows,$max_login;
 
     public function __construct($data = NULL)
     {
@@ -120,6 +121,26 @@ class Configuration extends Model
         $this->no_rows = $no_rows;
         return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getMaxLogin()
+    {
+        return $this->max_login;
+    }
+
+    /**
+     * @param mixed $max_login
+     * @return Configuration
+     */
+    public function setMaxLogin($max_login)
+    {
+        $this->max_login = $max_login;
+        return $this;
+    }
+
+
 
 
 

@@ -4,7 +4,7 @@ namespace bagy94\model;
 use bagy94\utility\Application;
 use bagy94\utility\RegexUtility;
 use bagy94\utility\Router;
-
+use bagy94\model\Configuration;
 require_once "Model.php";
 
 /**
@@ -19,9 +19,10 @@ class User extends Model
     const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= ?";
     const QUERY_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
     const QUERY_INIT_BY_ACTIVATION = "SELECT * FROM `users` WHERE `activation_hash` = ?";
+    const QUERY_ADD_POINTS = "INSERT INTO `user_get_points_transaction` VALUES (DEFAULT,?,?,?,0)";
 
     public static $QUERY_INSERT ="INSERT INTO `users` VALUES 
-(DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_created_at,:var_deleted)";
+(DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_points,:var_created_at,:var_deleted)";
 
     public static $t = "users";
     public static $tId = "user_id";
@@ -39,14 +40,14 @@ class User extends Model
     public static $tActivationHashCreatedAt = "activation_hash_created_at";
     public static $tActivationHashActivatedAt = "activation_hash_activated_at";
     public static $tTypeId = "type_id";
+    public static $tPoints = "points";
 
     protected $user_id,$user_name,$email,$password,$password_hash,$name,$surname,$birthday,
             $gender,$number_of_wrong_log_in="0",$log_in_type,$activation_hash,$activation_hash_created_at,
-            $activation_hash_activated_at=NULL,$type_id=3;
+            $points=0,$activation_hash_activated_at=NULL,$type_id=3;
 
 
     private $errors=[];
-
 
     /**
      * User constructor.
@@ -101,7 +102,7 @@ class User extends Model
             $this->created_at = Application::appTimeStamp();
         }
         $userData = $this->toParamsExclude([self::$tId]);
-        print_r($userData);
+        //print_r($userData);
         if($this->connect(self::$QUERY_INSERT,$userData)->prepare()->runQuery()){
             $this->setUserId($this->connection->lastId());
         }
@@ -204,7 +205,6 @@ class User extends Model
     {
         return $this->errors;
     }
-
     /**
      * @return mixed
      */
@@ -212,7 +212,6 @@ class User extends Model
     {
         return $this->user_id;
     }
-
     /**
      * @param mixed $user_id
      * @return User
@@ -222,7 +221,6 @@ class User extends Model
         $this->user_id = $user_id;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -230,7 +228,6 @@ class User extends Model
     {
         return $this->user_name;
     }
-
     /**
      * @param mixed $user_name
      * @return User
@@ -240,7 +237,6 @@ class User extends Model
         $this->user_name = $user_name;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -248,7 +244,6 @@ class User extends Model
     {
         return $this->email;
     }
-
     /**
      * @param mixed $email
      * @return User
@@ -258,7 +253,6 @@ class User extends Model
         $this->email = $email;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -266,7 +260,6 @@ class User extends Model
     {
         return $this->password;
     }
-
     /**
      * @param mixed $password
      * @return User
@@ -276,7 +269,6 @@ class User extends Model
         $this->password = $password;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -284,7 +276,6 @@ class User extends Model
     {
         return $this->password_hash;
     }
-
     /**
      * @param mixed $password_hash
      * @return User
@@ -294,7 +285,6 @@ class User extends Model
         $this->password_hash = $password_hash;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -302,7 +292,6 @@ class User extends Model
     {
         return $this->name;
     }
-
     /**
      * @param mixed $name
      * @return User
@@ -312,7 +301,6 @@ class User extends Model
         $this->name = $name;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -320,7 +308,6 @@ class User extends Model
     {
         return $this->surname;
     }
-
     /**
      * @param mixed $surname
      * @return User
@@ -330,7 +317,6 @@ class User extends Model
         $this->surname = $surname;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -338,7 +324,6 @@ class User extends Model
     {
         return $this->birthday;
     }
-
     /**
      * @param mixed $birthday
      * @return User
@@ -348,7 +333,6 @@ class User extends Model
         $this->birthday = $birthday;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -356,7 +340,6 @@ class User extends Model
     {
         return $this->gender;
     }
-
     /**
      * @param mixed $gender
      * @return User
@@ -366,7 +349,6 @@ class User extends Model
         $this->gender = $gender;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -374,7 +356,6 @@ class User extends Model
     {
         return $this->number_of_wrong_log_in;
     }
-
     /**
      * @param mixed $number_of_wrong_log_in
      * @return User
@@ -384,7 +365,6 @@ class User extends Model
         $this->number_of_wrong_log_in = $number_of_wrong_log_in;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -392,7 +372,6 @@ class User extends Model
     {
         return $this->log_in_type;
     }
-
     /**
      * @param mixed $log_in_type
      * @return User
@@ -402,7 +381,6 @@ class User extends Model
         $this->log_in_type = $log_in_type;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -410,7 +388,6 @@ class User extends Model
     {
         return $this->activation_hash;
     }
-
     /**
      * @param mixed $activation_hash
      * @return User
@@ -420,7 +397,6 @@ class User extends Model
         $this->activation_hash = $activation_hash;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -428,7 +404,6 @@ class User extends Model
     {
         return $this->activation_hash_created_at;
     }
-
     /**
      * @param mixed $activation_hash_created_at
      * @return User
@@ -438,7 +413,6 @@ class User extends Model
         $this->activation_hash_created_at = $activation_hash_created_at;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -446,7 +420,6 @@ class User extends Model
     {
         return $this->activation_hash_activated_at;
     }
-
     /**
      * @param mixed $activation_hash_activated_at
      * @return User
@@ -456,7 +429,6 @@ class User extends Model
         $this->activation_hash_activated_at = $activation_hash_activated_at;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -464,7 +436,6 @@ class User extends Model
     {
         return $this->type_id;
     }
-
     /**
      * @param mixed $type_id
      * @return User
@@ -474,7 +445,28 @@ class User extends Model
         $this->type_id = $type_id;
         return $this;
     }
+    /**
+     * @param $points
+     * @return User
+     */
+    public function setPoints($points){
+        $this->points = $points;
+        return $this;
+    }
+    /**
+     * @return int
+     */
+    public function getPoints()
+    {
+        return $this->points;
+    }
 
+    /**
+     * Function creates new hash for activation and save timestamp for activation created at.
+     * If param is true it will update values in database.
+     * @param bool $update
+     * @return bool|int
+     */
     public function createNewActivation($update=TRUE)
     {
         $this->setActivationHash(hash("md5",$this->getUserName().time()));
@@ -485,10 +477,54 @@ class User extends Model
         }
         return 1;
     }
-
+    /**
+     * Activate user account. Update activation_hash_activated_at.
+     * @return bool
+     */
     public function activate()
     {
         $this->setActivationHashActivatedAt(Application::appTimeStamp());
         return $this->update([self::$tActivationHashActivatedAt]);
+    }
+
+    /**
+     * Check if password is same as one in database.
+     * @param $password
+     * @return bool
+     */
+    public function isPasswordCorrect($password)
+    {
+        return !strcmp($this->getPassword(),$password);
+    }
+
+    /**
+     * Check if user is blocked.
+     * User is blocked if he tries to login with wrong password too many time(depends on sys_conf).
+     * @return bool
+     */
+    public function isUserAccountBlocked()
+    {
+        return $this->getNumberOfWrongLogIn() >= Configuration::Instance()->getMaxLogin();
+    }
+
+    /**
+     * Check if user has activate account.
+     * User can activate account by clicking on link which he gets on mail upon registration.
+     * @return bool
+     */
+    public function isActivated()
+    {
+        return isset($this->activation_hash_activated_at) && $this->activation_hash_activated_at !== "";
+    }
+
+    /**
+     * If password isn't correct update wrong attempt.
+     * @return bool
+     */
+    public function wrongLogIn()
+    {
+        $foo = intval($this->getNumberOfWrongLogIn());
+        $this->setNumberOfWrongLogIn(++$foo);
+        return $this->update([self::$tNumberOfLogIns]);
     }
 }

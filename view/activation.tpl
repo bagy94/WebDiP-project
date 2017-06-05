@@ -4,7 +4,7 @@
             <p>{$error}</p>
         </div>
     {else}
-        <div class="user-box">
+        <div class="activation-success">
             Aktivacija uspijesna
             <script>redirectToLogin()</script>
         </div>

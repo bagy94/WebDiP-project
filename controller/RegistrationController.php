@@ -19,6 +19,12 @@ use SimpleXMLElement;
 
 class RegistrationController extends Controller
 {
+    const VISIT_REGISTRATION = 19;
+    const ACTION_REGISTR_UNSUCCESS = 5;
+    const ACTION_REGISTR_SUCCES = 4;
+    const ACTION_ACTIVATION_SUCCESS = 1;
+    const ACTION_ACTIVATION_UNSUCCESS = 20;
+
     const VAR_VIEW_FORM_ACTION = "formAction";
     const VAR_VIEW_RECAPTCHA_KEY_PUBL = "recaptchaPublic";
     const VAR_VIEW_ACTIVATION_LOGIN_URL = "login_url";
@@ -73,7 +79,7 @@ class RegistrationController extends Controller
         }
         $this->initFiles();
 
-        Log::visit("Registracija",UserSession::log());
+        Log::write(self::VISIT_REGISTRATION,"Pregled stranice registracija/index");
         return $this->render($this->pageAdapter->getHTML());
 
     }
@@ -121,20 +127,17 @@ class RegistrationController extends Controller
         $this->user->setLogInType($this->filterInput("log-in-type"));
         //print_r($this->user);
         if(!$this->user->isRegistrationCorrect()){
-            Log::action("Neuspiješna registracija/".$this->user->getUserName(),$this->user->getUserName());
+            Log::write(self::ACTION_REGISTR_UNSUCCESS,"Neuspiješna registracija/".$this->user->getUserName(),$this->user->getUserId());
             $this->formHasErrors = $this->user->getErrors();
             return $this->index();
         }else{
-            Log::action("Registracija/".$this->user->getUserName(),$this->user->getUserName());
             if($this->user->registration()){
+                Log::write(self::ACTION_REGISTR_SUCCES,"Registracija/".$this->user->getUserName(),$this->user->getUserId());
                 if($this->user->sendActivationMail()){
-                    Log::action("slanje aktivacijskog maila".":[".$this->user->getEmail()."]");
                     return self::redirect("login","index");
                 }
             }
         }
-        //print_r($this->user);
-        return $this->index();
     }
 
     function activation($code){
@@ -147,19 +150,23 @@ class RegistrationController extends Controller
             if($user){
                 if (Configuration::Instance()->currentTimestamp() > $user->activationLinkEndsOn(Configuration::Instance()->getActivationLinkDuration())){
                     $this->pageAdapter->assign("error","Aktivacijski link istekao<br>Novi Poslan na mail");
+
+                    // TODO: Change it so user must ask for new activation link
                     if($user->createNewActivation()){
                         $user->sendActivationMail();
                     }else{
-
+                        Log::write(self::SYSTEM_ERROR_QUERY,"Greška prilikom kreiranja novog linka za aktivaciju",$user->getUserId());
                     }
-
+                    Log::write(self::ACTION_ACTIVATION_UNSUCCESS,"Aktivacijski link istekao",$user->getUserId());
                     return $this->render($this->pageAdapter->getHTML(1));
                 }else{
                     $user->activate();
+                    Log::write(self::ACTION_ACTIVATION_SUCCESS,"Korisnički račun aktivan",$user->getUserId());
                     return $this->render($this->pageAdapter->getHTML(1));
                 }
             }else{
-                $this->pageAdapter->assign("error","Aktivacijski link ne postoji");
+                $this->pageAdapter->assign("error","Aktivacijski link ne postoji ili je obnovljen");
+                Log::action(self::ACTION_ACTIVATION_UNSUCCESS,"Aktivacijski link ne postoji u bazi:[$act]");
                 return $this->render($this->pageAdapter->getHTML(1));
             }
         }
@@ -177,14 +184,14 @@ class RegistrationController extends Controller
     private function checkUserName()
     {
         $username = filter_input(INPUT_POST,self::ARG_POST_USER_NAME,FILTER_SANITIZE_EMAIL);
-        Log::service("Registracija/provjera korisničkog imena [$username]");
+        Log::write(self::ACTION_SERVICE_XML,"Upotreba servisa za provjeru korisničkog imena prilikom registracije :[$username]");
         return $username?!is_null(User::initByUserName($username)):"-1";
     }
 
     private function checkEmail()
     {
         $email = filter_input(INPUT_POST,self::ARG_POST_EMAIL,FILTER_SANITIZE_EMAIL);
-        Log::service("Registracija: provjera email [$email]");
+        Log::write(self::ACTION_SERVICE_XML,"Upotreba servisa za provjeru emaila prilikom registracije :[$email]");
         return $email?!is_null(User::initByEmail($email)):"-1";
     }
     private function filterInput($name,$filter=FILTER_SANITIZE_STRING,$method=INPUT_POST){

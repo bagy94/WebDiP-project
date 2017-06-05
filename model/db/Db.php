@@ -16,7 +16,9 @@ use \PDO as PDO;
 
 class Db
 {
-    private static $WRITE_LOG = "INSERT INTO `log` VALUES (DEFAULT,?,?,?,NOW(),0)";
+    const DB_ACTION_QUERY = 16;
+
+    private static $WRITE_LOG = "INSERT INTO `sys_log` VALUES (DEFAULT,?,?,?,MY_SYSTEM_TIME(),0)";
     private static $GET_LOGS = "SELECT * FROM `log` ";
 
 
@@ -300,9 +302,9 @@ class Db
         return self::$stmWriteLog;
     }
 
-    public function writeLog($keyword,$content,$user)
+    public function writeLog($actionId,$userID,$content)
     {
-        self::stmLog()->execute([$keyword,$content,$user]);
+        self::stmLog()->execute([$actionId,$userID,$content]);
         return $this;
     }
 
@@ -310,7 +312,7 @@ class Db
     public function log_prepared(){
         $query = str_replace("'","",$this->query);
         $params = is_array($this->queryParams)?":[".implode(";",$this->queryParams)."]": "";
-        return $this->writeLog("db",$query.$params,UserSession::log());
+        return $this->writeLog(self::DB_ACTION_QUERY,UserSession::log(),$query.$params);
     }
 
 

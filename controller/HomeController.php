@@ -17,6 +17,11 @@ use SimpleXMLElement;
 
 class HomeController extends Controller
 {
+    const ACTION_VISIT_HOME = 2;
+    const VISIT_DOC = 10;
+    const VISIT_ABOUT = 11;
+    const ACTION_SERVICE_LIST_OF_SERVICE = 17;
+
     const ARG_POST_SERVICE_CATEGORY_ID = "scid";
     const VIEW_VAR_ITEMS = "items";
     public static $KEY = "home";
@@ -41,7 +46,7 @@ class HomeController extends Controller
         $this->pageAdapter->assign(self::VIEW_VAR_ITEMS,$categoryList);
         $this->pageAdapter->getSettings()->addJsLocal("index");
         $this->pageAdapter->getSettings()->addCssLocal("index");
-        Log::visit("Početna",UserSession::log());
+        Log::write(self::ACTION_VISIT_HOME,"Pregled home/index");
         return $this->render($this->pageAdapter->getHTML());
     }
     //isset($_GET[self::ARG_POST_SERVICE_CATEGORY_ID]
@@ -52,7 +57,7 @@ class HomeController extends Controller
      */
     function services(){
         $xml = new SimpleXMLElement("<xml/>");
-        $scid = filter_input(INPUT_POST,self::ARG_POST_SERVICE_CATEGORY_ID,FILTER_SANITIZE_NUMBER_INT);
+        $scid = $this->filterPost(self::ARG_POST_SERVICE_CATEGORY_ID,NULL,FILTER_SANITIZE_NUMBER_INT);
         if(!$scid){
             $xml->addAttribute("success","0");
             $xml->addAttribute("message","Kategorija nije odabrana");
@@ -72,7 +77,7 @@ class HomeController extends Controller
         else{
             $xml->addAttribute("message","Nema rezervacija");
         }
-        Log::service("Usluge/ kategorija[$scid]",UserSession::log());
+        Log::write(self::ACTION_SERVICE_LIST_OF_SERVICE,"Pregled tri najrezerviranije usluge");
         return $this->render($xml,"XML");
     }
 
@@ -83,6 +88,7 @@ class HomeController extends Controller
     function doc(){
         $this->pageAdapter->getSettings()->addAsset(Router::asset("era"),"era");
         $this->pageAdapter->setTitle("Dokumentacija");
+        Log::write(self::VISIT_DOC,"Pregled dokumentacije");
         return $this->render($this->pageAdapter->getHTML(2));
     }
 
@@ -93,6 +99,7 @@ class HomeController extends Controller
     function about(){
         $this->pageAdapter->getSettings()->addAsset(Router::asset("me","jpg"),"me");
         $this->pageAdapter->setTitle("O autoru");
+        Log::write(self::VISIT_ABOUT,"Pregled stranice o autoru");
         return $this->render($this->pageAdapter->getHTML(1));
     }
 

@@ -69,3 +69,25 @@ div.form-inline-element-wrapper.has-error{
     margin: 0px 8px 8px 4px;
     padding: 2px 3px;
 }
+
+.err-box{
+    border: 2px solid red;
+    border-radius: 30px;
+    background: rgba(241, 221, 221, 0.77);
+    color: #86192b;
+    font-size: 18px;
+    width: 70%;
+    display: inline-block;
+}
+.activation-success{
+    border: 2px solid #b700ff;
+    border-radius: 30px;
+    background: rgba(234, 221, 241, 0.77);
+    color: #6d1986;
+    font-size: 18px;
+    width: 70%;
+    display: inline-block;
+}
+.content{
+    text-align: center;
+}

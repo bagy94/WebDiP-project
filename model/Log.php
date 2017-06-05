@@ -13,15 +13,11 @@ use bagy94\utility\UserSession;
 
 class Log
 {
-    const KEYWORD_VISIT = "visit";
-    const KEYWORD_SERVICE = "service";
-    const KEYWORD_ACTION = "action";
-
-
-
     private static $_instance = NULL;
 
     private $db;
+    private $stm;
+    private $user;
 
     private function __construct()
     {
@@ -35,9 +31,12 @@ class Log
         return self::$_instance;
     }
 
-    public static function write($keyword,$content,$user)
+    public static function write($actionId,$content,$userid=NULL)
     {
-        return self::Instance()->db->writeLog($keyword,$content,$user);
+        if(!$userid){
+            $userid = UserSession::log();
+        }
+        return self::Instance()->db->writeLog($actionId,$userid,$content);
     }
 
     public static function get($limit=NULL,$offset)
@@ -46,20 +45,6 @@ class Log
         $options .= isset($offset)?Db::offset($offset):"";
         return self::Instance()->db->getLogs($options);
     }
-
-    public static function visit($page,$user=NULL){
-        $user = !isset($user)?UserSession::log():$user;
-        self::write(self::KEYWORD_VISIT,"Pregled stranice: $page",$user);
-    }
-    public static function service($service,$user=NULL){
-        $user = !isset($user)?UserSession::log():$user;
-        self::write(self::KEYWORD_SERVICE,"Upotreba servisa: $service",$user);
-    }
-    public static function action($action,$user=NULL){
-        $user = !isset($user)?UserSession::log():$user;
-        self::write(self::KEYWORD_ACTION,"Akcija: $action",$user);
-    }
-
     /*public static function db($query,$user,$params=NULL)
     {
         //self::Instance()->db->writeLog("db",)

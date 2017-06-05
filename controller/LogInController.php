@@ -14,6 +14,15 @@ use bagy94\utility\UserSession;
 
 class LogInController extends Controller
 {
+    const VISIT_INDEX_FIRST_STEP = 3;
+    const VISIT_INDEX_SECOND_STEP = 18;
+
+    const ACTION_LOG_IN_SUCC_1 = 6;
+    const ACTION_LOG_IN_UNSUCC_1 = 7;
+
+    const ACTION_LOG_IN_SUCC_2 = 8;
+    const ACTION_LOG_IN_UNSUCC_2= 9;
+
     const ARG_POST_USERNAME = "user_name";
     const ARG_POST_PASSWORD = "password";
 
@@ -21,24 +30,35 @@ class LogInController extends Controller
 
     public static $KEY = "login";
 
-    private $errors=[];
+    private $errors=NULL;
+    private $user=NULL;
 
     function __construct()
     {
         parent::__construct("Prijava", "prijava signin login");
         $this->initFiles();
+
     }
 
     function index($step=NULL)
     {
         Router::reqHTTPS(self::$KEY);
-        $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
-        if(count($this->errors)){
+        if(isset($this->errors)){
             $this->pageAdapter->assign("errors",$this->errors);
         }
 
-        Log::visit("Prijava",UserSession::log());
-        return $this->render($this->pageAdapter->getHTML());
+        if(isset($step) && $step == "2" && isset($this->user)){
+            $index = 1;
+            $act = self::VISIT_INDEX_SECOND_STEP;
+            $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(2));
+        }else{
+            $index = 0;
+            $act = self::VISIT_INDEX_FIRST_STEP;
+            $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
+        }
+
+        Log::write($act,"Pregled stranice prijava");
+        return $this->render($this->pageAdapter->getHTML($index));
     }
 
     /**
@@ -46,24 +66,24 @@ class LogInController extends Controller
      * @return string[]
      **/
 
-    function submit(){
-
-        if(isset($_POST[self::ARG_POST_USERNAME]) && isset($_POST[self::ARG_POST_USERNAME])){
-            $username = $this->filter_post(self::ARG_POST_USERNAME);
-            $user = User::initByUserName($username);
-
-            if($user !== NULL){
-
+    function submit($step=NULL){
+        if (!$step){
+            $username = $this->filterPost(self::ARG_POST_USERNAME);
+            if($username){
+                return $this->logInFIrstStep($username);
             }else{
-                $this->errors = ["Korisnik ne postoji!"];
+                $this->errors = "Korisničko ime nije uneseno";
+                return $this->index();
             }
-
         }else{
-            return $this->index();
+            if(isset($step[0]) && is_string($step[0]) && !strcmp($step[0],"code")){
+
+            }
+            else{
+
+            }
         }
 
-        Log::action("Prijava", $username);
-        return $this->render($this->pageAdapter->getHTML(1));
     }
     function postCode(){
 
@@ -78,6 +98,33 @@ class LogInController extends Controller
 
     }
 
+    private function logInFIrstStep($username){
+        $this->user = User::initByUserName($username);
+        if($this->user){
+            if($this->user->isPasswordCorrect($this->filterPost(self::ARG_POST_PASSWORD))){
+                if($this->user->isActivated()){
+                    if(!$this->user->isUserAccountBlocked()){
+                        Log::write(self::ACTION_LOG_IN_SUCC_1,"Račun blokiran",$this->user->getUserId());
+                            return $this->index($this->user->getLogInType());
+                    }else{
+                        Log::write(self::ACTION_LOG_IN_UNSUCC_1,"Račun blokiran",$this->user->getUserId());
+                    }
+                }else{
+                    Log::write(self::ACTION_LOG_IN_UNSUCC_1,"Račun blokiran",$this->user->getUserId());
+                }
+            }else{
+                Log::write(self::ACTION_LOG_IN_UNSUCC_1,"Neispravna lozinka",$this->user->getUserId());
+                $this->user->wrondLogIn();
+            }
+        }
+        else{
+            Log::write(self::ACTION_LOG_IN_UNSUCC_1,"Korisnik nije pronađen");
+            $this->pageAdapter->assign("error","Korisnik ne postoji");
+            return $this->index(1);
+        }
+        return $this->index();
+    }
+
 
     /**
      * Returns array of possible actions
@@ -85,7 +132,7 @@ class LogInController extends Controller
      */
     function actions()
     {
-        return ["index","submit","postCode","check"];
+        return ["index","submit","submit/code","check"];
     }
 
     /**
@@ -96,7 +143,5 @@ class LogInController extends Controller
     {
         return ["view/login_step_1.tpl", "view/login_step_2.tpl"];
     }
-    private function filter_post($varName,$filter=FILTER_SANITIZE_STRING){
-        return filter_input(INPUT_POST,$varName,$filter);
-    }
+
 }
