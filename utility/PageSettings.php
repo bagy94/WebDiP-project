@@ -65,13 +65,13 @@ class PageSettings
     {
         switch (UserSession::getUserType()) {
             case UserSession::ADMINISTRATOR:
-                $this->addMenuLink("Postavke sustava", Router::make("admin", "indexSett ings"));
+                $this->addMenuLink("Postavke sustava", Router::make("admin"));
             case UserSession::MODERATOR:
             case UserSession::REGULAR:
             default:
-                $this->addMenuLink("Početna", Router::make("home", "index"));
-                $this->addMenuLink("Prijava", Router::make("login", "index"));
-                $this->addMenuLink("Registracija", Router::make("registration", "index"));
+                $this->addMenuLink("Početna", Router::make("home"));
+                $this->addMenuLink("Prijava", Router::make("login"));
+                $this->addMenuLink("Registracija", Router::make("registration"));
         }
     }
 
@@ -148,7 +148,7 @@ class PageSettings
     }
 
     public function initFooter(){
-        $this->footer["Dokumentacija"] =Router::make("doc", "index");
-        $this->footer["O autoru"] =  Router::make("about", "index");
+        $this->footer["Dokumentacija"] =Router::make("home", "doc");
+        $this->footer["O autoru"] =  Router::make("home", "about");
     }
 }

@@ -174,6 +174,29 @@ class WebPage
         }
     }
 
+    /**
+     * @param string $title
+     * @return WebPage
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * @param null|string $keywords
+     * @return WebPage
+     */
+    public function setKeywords($keywords)
+    {
+        $this->keywords = $keywords;
+        return $this;
+    }
+
+
+
+
     public function appendLink($type,$link){
         $this->settings->add($type,$link);
     }

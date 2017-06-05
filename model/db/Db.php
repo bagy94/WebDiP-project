@@ -20,6 +20,12 @@ class Db
     private static $GET_LOGS = "SELECT * FROM `log` ";
 
 
+    private static $UPDATE = "UPDATE %s SET %s WHERE %s";
+    private static $INSERT = "INSERT INTO %s VALUES (%s)";
+    private static $SELECT = "SELECT %s FROM %s";
+    private static $SELECT_WHERE = "SELECT %s FROM %s WHERE %s";
+
+
     private static $stmWriteLog = NULL;
 
     const dbFile = "db_data.ini";
@@ -33,6 +39,9 @@ class Db
     protected $connection;
     /*** @var \PDOStatement $stm */
     protected $stm;
+
+    protected $constraints=[];
+    protected $columns = [];
 
     public function __construct($query="",$params=[],$pdo=null)
     {
@@ -81,6 +90,7 @@ class Db
         if(!isset($this->connection)){
             $this->connection = self::getInstance();
         }
+
         $this->stm = $this->connection->prepare($this->query);
         return $this;
     }
@@ -203,42 +213,38 @@ class Db
         $this->queryParams = $queryParams;
     }
 
-    public function makeSelect($tables=[],$columns=[],$constraint=[],$options=NULL,$constraintGlue="AND"){
-        $col = isset($columns) && count($columns)?implode(",",$columns):"*";
-        $lastConst = end($constraint);
-        $const = "";
-        $this->queryParams = array();
-        foreach ($constraint as $column=>$value){
-            $param = ":p$column";
-            $const .= "`$column`= $param";
-            $this->queryParams[$param] = $value;
-            if ($column !== $lastConst) $const .= " $constraintGlue ";
-        }
-        $this->query = "SELECT {$col} FROM ".implode(",",$tables)." WHERE {$const}";
-    }
-
-    public function makeInsert($table,$data=[]){
-        $last = end($data);
-        $vals = "";
-        if (self::isAssocArray($data)){
-            $cols ="(";
-            foreach ($data  as $column=>$value){
-                $cols .= $column;
-                $vals .= self::isFunction($value)?$value:"?";
-                $this->addParam($value);
-                if ($last !== $column){$cols .= ",";$vals .= ",";}
-            }
-        }else{
-            $cols = "";
-            foreach ($data as $index=>$value){
-                $vals .= "?";
-                $this->addParam($value);
-                if ($last !== $index){$vals .= ",";}
-            }
-         }
-        $this->query = "INSERT INTO $table $cols VALUES ($vals)";
+    public function makeUpdate($table,$columns=[],$constraints=[],$constraintGlue = " AND ")
+    {
+        $this->prepareColumns($columns)->prepareConstraints($constraints);
+        $this->setQuery(sprintf(self::$UPDATE,
+            $table,
+            implode(",",$this->columns),
+            implode($constraintGlue,$this->constraints)
+        ));
         return $this;
     }
+
+    public function prepareConstraints($constraints=[]){
+        foreach ($constraints as $column=>$value){
+            $param = ":var_$column";
+            $foo = "`$column`= $param";
+            array_push($this->constraints,$foo);
+            $this->queryParams[$param] = $value;
+        }
+        return $this;
+    }
+
+    public function prepareColumns($columns=[])
+    {
+        foreach ($columns as $column=>$columnValue){
+            $param = ":var_$column";
+            $foo = "`$column`= $param";
+            array_push($this->columns,$foo);
+            $this->queryParams[$param]= $columnValue;
+        }
+        return $this;
+    }
+
 
     public function lastId()
     {

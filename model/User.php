@@ -2,8 +2,8 @@
 
 namespace bagy94\model;
 use bagy94\utility\Application;
-use bagy94\utility\db\Db;
 use bagy94\utility\RegexUtility;
+use bagy94\utility\Router;
 
 require_once "Model.php";
 
@@ -15,9 +15,10 @@ require_once "Model.php";
  */
 class User extends Model
 {
-    const QUERY_INIT_BY_ID = "SELECT * FROM  `users` WHERE  `user_id` = ?";
+    public static $QUERY_INIT_BY_ID = "SELECT * FROM  `users` WHERE  `user_id` = ?";
     const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= ?";
     const QUERY_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
+    const QUERY_INIT_BY_ACTIVATION = "SELECT * FROM `users` WHERE `activation_hash` = ?";
 
     public static $QUERY_INSERT ="INSERT INTO `users` VALUES 
 (DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_created_at,:var_deleted)";
@@ -52,7 +53,7 @@ class User extends Model
      * @param int|null $id
      * @param array $data
      */
-    public function __construct($id = NULL, array $data = array())
+    public function __construct($id = NULL,  $data =NULL)
     {
         parent::__construct($id,$data);
     }
@@ -75,6 +76,16 @@ class User extends Model
         return self::initBy(self::QUERY_INIT_BY_EMAIL,[$email]);
     }
 
+    /**
+     * Create instance of user by activation code or return null if code doesn't exist
+     * @param $act
+     * @return User|null
+     */
+    public static function checkActivationCode($act)
+    {
+        return self::initBy(self::QUERY_INIT_BY_ACTIVATION,[$act]);
+    }
+
 
     public function registration(){
         if(!isset($this->type_id)){
@@ -84,18 +95,20 @@ class User extends Model
             $this->password_hash = hash("sha256",$this->getPassword());
         }
         if(!isset($this->activation_hash)){
-            $this->setActivationHash(hash("md5",$this->getPassword()));
-            $this->setActivationHashCreatedAt(Application::appTimeStamp());
+            $this->createNewActivation(FALSE);
         }
         if(!isset($this->created_at)){
             $this->created_at = Application::appTimeStamp();
         }
-        $userData = $this->toParams([self::$tId]);
-        //print_r($userData);
+        $userData = $this->toParamsExclude([self::$tId]);
+        print_r($userData);
         if($this->connect(self::$QUERY_INSERT,$userData)->prepare()->runQuery()){
             $this->setUserId($this->connection->lastId());
         }
         return $this->getUserId();
+    }
+    public function testParams(){
+        return $this->toParamsExclude([self::$tId]);
     }
 
     /**
@@ -155,6 +168,34 @@ class User extends Model
             $this->setBirthday(Application::dateFormat($this->getBirthday()));
         return !count($this->errors);
     }
+
+    function sendMail($subject,$content,$headers=NULL){
+        return mail($this->getEmail(), $subject, $content,$headers);
+    }
+
+    /**
+     * @param $duration
+     * @return false|int
+     */
+    public function activationLinkEndsOn($duration)
+    {
+        return strtotime("$duration hours",strtotime($this->getActivationHashCreatedAt()));
+    }
+
+    public function sendActivationMail(){
+        $subject = "Mail za aktivaciju korisničkog računa";
+        $header = "From: wellness@no-reply.foi.hr \r\n";
+        $header .= "MIME-Version: 1.0\r\n";
+        $header .="Content-type: text/html; charset=UTF-8 \r\n";
+        $message = '<div style="box-shadow:4px 5px 6px 1px #64843a;text-align: left;padding: 18px;background-color: rgba(140, 146, 135, 0.6);border-radius: 7px;max-width:800px;color: #573988;">'
+            .'<p style="max-width: 80%;margin:5px;padding:3px;font-size:16px;padding: 3px;width: 80%;border-bottom: 1px solid rgba(214, 107, 107, 0.84);padding-left: 11px;font-family: Arial Black, Gadget, sans-serif;font-size: 25px;font-style: italic;margin: 3px 7px 7px 5px;">Hvala na registraciji</p>'
+            .'<p style="max-width:80%;margin:5px;padding:3px;font-size:16px;">Ime: '.$this->getName()."</p>"
+            .'<p style="max-width: 80%;margin:5px;padding:3px;font-size:16px;">Prezime: '.$this->getSurname()."</p>";
+        $link = Router::make("registration","activation",$this->getActivationHash());
+        $message .= '<p style="margin:5px;padding:3px;">Za aktivaciju korisničkog računa pristisnite na link: <a href="'.$link.'" target="_blank" style="color: green;text-decoration:blink;margin-left: 4px;">Aktivacijski link</a></p></div>';
+        return $this->sendMail($subject,$message,$header);
+    }
+
 
     /**
      * @return array
@@ -432,5 +473,22 @@ class User extends Model
     {
         $this->type_id = $type_id;
         return $this;
+    }
+
+    public function createNewActivation($update=TRUE)
+    {
+        $this->setActivationHash(hash("md5",$this->getUserName().time()));
+        $this->setActivationHashCreatedAt(Application::appTimeStamp());
+
+        if($update){
+            return $this->update([self::$tActivationHash,self::$tActivationHashCreatedAt]);
+        }
+        return 1;
+    }
+
+    public function activate()
+    {
+        $this->setActivationHashActivatedAt(Application::appTimeStamp());
+        return $this->update([self::$tActivationHashActivatedAt]);
     }
 }

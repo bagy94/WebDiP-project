@@ -28,10 +28,6 @@ class ServiceCategory extends Model
     /*
      * @return string[]
      */
-    function getColumns()
-    {
-        return [self::$tName];
-    }
 
     function save($columns = array())
     {

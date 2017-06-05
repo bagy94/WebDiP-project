@@ -26,8 +26,9 @@ class Configuration extends Model
     public static $tId = "id";
     public static $tInterval = "interval";
     public static $tTableRows = "no_rows";
+    public static $tActivationLinkDuration = "activation_link_duration";
 
-    protected $id,$interval,$no_rows;
+    protected $id,$interval,$activation_link_duration,$no_rows;
 
     public function __construct($data = NULL)
     {
@@ -41,17 +42,91 @@ class Configuration extends Model
         }
         return self::$_instance;
     }
-
-    function getColumns()
-    {
-        // TODO: Implement getColumns() method.
-    }
-
     function interval(){
         return $this->interval;
     }
 
     function getNew(){
         $this->init();
+    }
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param mixed $id
+     * @return Configuration
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getInterval()
+    {
+        return $this->interval;
+    }
+
+    /**
+     * @param mixed $interval
+     * @return Configuration
+     */
+    public function setInterval($interval)
+    {
+        $this->interval = $interval;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getActivationLinkDuration()
+    {
+        return $this->activation_link_duration;
+    }
+
+    /**
+     * @param mixed $activation_link_duration
+     * @return Configuration
+     */
+    public function setActivationLinkDuration($activation_link_duration)
+    {
+        $this->activation_link_duration = $activation_link_duration;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNoRows()
+    {
+        return $this->no_rows;
+    }
+
+    /**
+     * @param mixed $no_rows
+     * @return Configuration
+     */
+    public function setNoRows($no_rows)
+    {
+        $this->no_rows = $no_rows;
+        return $this;
+    }
+
+
+
+    /**
+     * @return false|int
+     */
+    function currentTimestamp(){
+        return strtotime("$this->interval hours");
     }
 }

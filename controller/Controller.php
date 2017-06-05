@@ -125,8 +125,11 @@ abstract  class Controller implements IController
         return $response;
     }
 
-    public static function invokeController($controller,$action,$ars=NULL)
+    public static function invokeController($urlParts=[])
     {
+        $controller = isset($urlParts["controller"])?$urlParts["controller"]:"error";
+        $action = isset($urlParts["action"])?$urlParts["action"]:"index";
+        $args = isset($urlParts["args"])?$urlParts["args"]:NULL;
         if(array_key_exists($controller,self::$controllers)){
             $class =sprintf("%s\\%s",__NAMESPACE__,self::$controllers[$controller]);
             if(class_exists($class)){
@@ -141,8 +144,9 @@ abstract  class Controller implements IController
             $action = "index";
         }
         //print_r($active);
+
         if($active->hasAction($action)){
-            $response = $active->invokeAction($action,$ars);
+            $response = $active->invokeAction($action,$args);
         }
         else{
             $error = new ErrorController("Action not found");

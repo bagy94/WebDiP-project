@@ -20,6 +20,7 @@ abstract class Model extends MetaModel implements IModel
     public static $QUERY_INIT_BY_ID;
 
 
+
     public static $t="table";
     public static $tId = "id";
     public static $tDeleted = "deleted";
@@ -49,103 +50,8 @@ abstract class Model extends MetaModel implements IModel
      */
     function save($columnsToSave = array())
     {
-        $this->connect();
-        if( !(is_array($columnsToSave) && count($columnsToSave))){
-            $columnsToSave = $this->columns();
-        }
-        if(isset($this->{self::$tId}) && is_numeric($this->{self::$tId})){
-            $query = "UPDATE `".self::$t."` SET ";
-            $last = end($columnsToSave);
-            foreach ($columnsToSave as $column){
-                $query .= "`$column`= ? ";
-                if($column !== $last)$query .= ", ";
-                $this->connection->addParam($this->$column);
-            }
-
-
-
-
-            /*for ($i = 0; $i < $k; $i++) {
-                if(!self::isFunction($this->get($columnsToSave[$i]))){
-                    $param = self::dbQueryPrepPrefix.$columnsToSave[$i];
-                    $query .= "`$columnsToSave[$i]` = {$param}";
-                    $params[$param] = $this->get($columnsToSave[$i]);
-                }else{
-                    $query .= "`$columnsToSave[$i]` =".$this->get($columnsToSave[$i]);
-                }
-                if(($i+1)<$k){
-                    $query .= ",";
-                }
-            }*/
-
-        }else{
-            $query = "INSERT INTO `".self::$t."` VALUES (DEFAULT,";
-            $k = count($columnsToSave);
-            $params = array();
-            for ($i = 0; $i < $k; $i++) {
-                if(!self::isFunction($this->get($columnsToSave[$i]))){
-                    $param = self::dbQueryPrepPrefix.$columnsToSave[$i];
-                    $query .= "{$param}";
-                    $params[$param] = $this->get($columnsToSave[$i]);
-                }else{
-                    $query .= $this->get($columnsToSave[$i]);
-                }
-                if(($i+1)<$k){
-                    $query .= ",";
-                }
-            }
-        }
-        $this->query = $query. ")";
-        $this->queryParams = $params;
-        //print_r($this->query);
-        //print_r($this->queryParams);
-
-        /*$this->connect();
-        $this->prepare();
-        $this->query();
-        $this->disconnect();
-        return $this->dbResult->success;*/
 
     }
-
-    /*
-     * Initialize object from Database
-     * @param array $columnsToInitBy
-     * @return bool
-
-    function init($columnsToInitBy=array())
-    {
-        $this->query = "SELECT * FROM `".self::$t."` WHERE ";
-        if(!(is_array($columnsToInitBy) && count($columnsToInitBy))){
-            $columnsToInitBy = array(self::$tId);
-        }
-        $k= count($columnsToInitBy);
-        $this->queryParams = array();
-        for ($i = 0; $i < $k; $i++) {
-            $param = self::dbQueryPrepPrefix.$columnsToInitBy[$i];
-            $this->query .= "`{$columnsToInitBy[$i]}`={$param}";
-            $this->queryParams[$param]= $this->get($columnsToInitBy[$i]);
-            if(($i+1)<$k){
-                $this->query .= " and ";
-            }
-        }
-       // echo $this->query;
-        $this->connect();
-        $this->prepare();
-        if($this->query()){
-            //echo "<br>".print_r($this->dbResult->getData())."<br>";
-            if($this->dbResult->hasData()){
-                $this->data= $this->dbResult->getData()[0];
-            }
-            //echo "<br>Data: ";print_r($this->data);
-            $this->disconnect();
-            return $this->dbResult->success;
-        }
-        $this->disconnect();
-        return null;
-
-    }*/
-
 
     protected function init(){
         $query = $this::$QUERY_INIT_BY_ID;
@@ -167,13 +73,22 @@ abstract class Model extends MetaModel implements IModel
         $this->connection->disconnect();
         return is_numeric($this->{self::$tId}) && $this->{self::$tId} !== "-1";
     }
-    protected function update($columns=[],$constraintArray=[],$condition = "AND"){
+    public function update($columns=[]){
         if( !(is_array($columns) && count($columns))){
-            $columns = $this->columns();
+            $columns = $this::getColumns();
         }
-        if(!(is_array($constraintArray) && count($constraintArray))) {
-            $constraintArray = [self::$tId];
+        $this->connect();
+        foreach ($columns as $column){
+            $foo[$column] = $this->{$column};
         }
+
+        return $this->getConnection()
+            ->makeUpdate($this::$t,$foo,[$this::$tId=>$this->{$this::$tId}])
+            ->prepare()
+            ->runQuery();
+
+
+
         /*$queryy = Db::makeQuery("UPDATE",[self::$t]);
         $query = "UPDATE `" . self::$t . "` SET ";
         $last = end($columns);
@@ -188,6 +103,12 @@ abstract class Model extends MetaModel implements IModel
         }*/
     }
 
+    protected function columnsToConstraints($columns=[]){
+        if(!count($columns)){
+            $columns = $this->columns();
+        }
+    }
+
     protected function buildQueryInitById(){
         self::$QUERY_INIT_BY_ID = "SELECT * FROM ".self::$t." WHERE ".self::$tId."= ?";
     }
@@ -199,15 +120,28 @@ abstract class Model extends MetaModel implements IModel
         }
     }
 
-    public function toParams($excludeColumns=[]){
-        $cols = $this->columns();
-        //print_r($cols);
-        //$params = array();
+    public function toParamsExclude($excludeColumns=[],$assoc=TRUE){
+        $cols = $this::getColumns();
+        $params = array();
         foreach ($cols as $column){
-            $col = $this::$$column;
-            if(!in_array($col,$excludeColumns)){
-                $params[":var_$col"] = $this->{$col};
+            if(!in_array($column,$excludeColumns)){
+                if($assoc){
+                    $params[":var_$column"] = $this->{$column};
+                }
+                else {
+                    array_push($params,$this->{$column});
+                }
             }
+        }
+        return $params;
+    }
+
+    public function toParamInclude($includeColumns=[],$assoc=TRUE){
+        if(!count($includeColumns)){return $this->toParamsExclude();}
+        $params = array();
+        foreach ($includeColumns as $column){
+            if($assoc)$params[":var_$column"] = $this->{$column};
+            else array_push($params,$this->{$column});
         }
         return $params;
     }

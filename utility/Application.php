@@ -16,6 +16,10 @@ class Application
     const DATE_FORMAT = "Y-m-d";
 
 
+    /**
+     * Function which returns current application timestamp in MYSQL Timestamp format
+     * @return string
+     */
     public static function appTimeStamp()
     {
         $interval = Configuration::Instance()->interval();
@@ -27,4 +31,8 @@ class Application
         return date(self::DATE_FORMAT,strtotime($dateToChange));
     }
 
+    public static function toTimeFormat($timestamp)
+    {
+        return date(self::TIMESTAMP_FORMAT,$timestamp);
+    }
 }

@@ -9,6 +9,7 @@
 namespace bagy94;
 require_once "connection.php";
 require_once "utility/UserSession.php";
+require_once "utility/Router.php";
 spl_autoload_register(function ($class){
     //var_dump($class);
     $className= end(explode("\\",$class));
@@ -40,10 +41,9 @@ if(isset($_GET[Router::ROUTE])){
     $route = $route === ""?"home/index":$route;
 }
 else{
-    $url = Router::make("home","index");
+    $url = Router::make("home",NULL);
     header("Location: $url");
     //echo "bla3";
 }
-
 $request = Router::decode($route);
-Controller::invokeController($request['controller'],$request['action'],$request["args"]);
+Controller::invokeController($request);

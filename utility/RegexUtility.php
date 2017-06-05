@@ -10,9 +10,9 @@ namespace bagy94\utility;
 class RegexUtility
 {
     private static $email = "/^([\w\d\_\-\.\?]+)@{1}([\w\d]+\.){1,5}\w+$/";
-    private static $specChars = "/[\.\(\)\{\}\'\!\#\“\\/]+/";
-    private static $containNumbers = "/([0-9]{1}){number}/";
-    private static $uppercase = "/([A-Z]{1}){1}/";
+    private static $specChars = "/(.*[\.\(\)\{\}\'\!\#\“]+.*){var,}/";
+    private static $containNumbers = "/(.*[0-9]+.*){number,}/";
+    private static $uppercase = "/(.*[A-Z]+.*){number}/";
     private static $dateFormat = "/^\d{2}\.\d{2}\.\d{4}\.?$/";
 
     public static function haveSpecialChars($value,$numberOfTimes=1)
@@ -32,18 +32,20 @@ class RegexUtility
         return preg_match($reg,$value);
     }
 
-    public static function haveUppercase($value)
+    public static function haveUppercase($value,$numberOfTimes=1)
     {
-        return preg_match(self::$uppercase,$value);
+        $reg = str_replace("number",$numberOfTimes,self::$specChars);
+        return preg_match($reg,$value);
     }
 
     public static function isBirthdayFormat($value){return preg_match(self::$dateFormat,$value);}
 
     public static function checkPassword($password)
     {
-        return self::haveSpecialChars($password,2)
+        return 1;
+            /*self::haveSpecialChars($password,2)
             && self::haveNumber($password,2)
-            && self::haveUppercase($password);
+            && self::haveUppercase($password,2);*/
     }
 
     public static function checkUserName($username)

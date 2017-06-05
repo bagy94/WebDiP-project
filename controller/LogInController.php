@@ -31,7 +31,7 @@ class LogInController extends Controller
 
     function index($step=NULL)
     {
-        Router::reqHTTPS(self::$KEY,$this->actions()[0]);
+        Router::reqHTTPS(self::$KEY);
         $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_1, $this->formAction(1));
         if(count($this->errors)){
             $this->pageAdapter->assign("errors",$this->errors);

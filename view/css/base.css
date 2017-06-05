@@ -6,13 +6,12 @@
  */
 
 /**Page*/
-html {
-    height: 100%;
-}
 
 body {
     margin: 0px;
-    width: 100%;
+    padding: 0px;
+    width: 99%;
+    height: 100%;
 }
 
 
@@ -24,8 +23,8 @@ body {
 
 .page{
     text-align: center;
-    margin-top: 110px;
-    margin-bottom: 70px;
+    margin-bottom: 7%;
+    padding-bottom: 2%;
 }
 .page-background{
     background-repeat: round;
@@ -45,11 +44,13 @@ header {
     top: 0;
     min-width: 100%;
     width: 100%;
+    position: relative;
     text-align: left;
     color: white;
-    position: fixed;
     margin-bottom: auto;
     z-index: 2;
+    /*display: none;*/
+    height: 9%;
 }
 
 header > * {
@@ -67,13 +68,12 @@ footer {
     width: 100%;
     text-align: center;
     color: white;*/
-
+    position: relative;
     left: 0;
     bottom: 0;
     min-width: 100%;
     width: 100%;
     text-align: center;
-    position: fixed;
 }
 
 footer a {
@@ -82,13 +82,11 @@ footer a {
     margin-left: 4px;
     margin-right: 4px;
 }
-header{
-    min-height: 40px;
-
-}
 
 h1{
-    margin-left: 3%;
+    height: auto;
+    margin: 1% 10px;
+    font-size: xx-large;
 }
 
 /**Menu*/
@@ -116,7 +114,7 @@ nav.menu>ul>li>a {
 }
 
 
-@media screen and (min-width: 850px) {
+@media screen and (min-width: 700px) {
     div.page{
         min-width: 50%;
         max-width: 85%;
@@ -129,21 +127,17 @@ nav.menu>ul>li>a {
         margin-left: 5px;
         margin-right: 5px;
         margin-bottom: 0px;
-
         margin-bottom: 2px;
     }
 }
 
-
 @media screen and (max-width: 480px) {
-    footer a {
-        display: block;
-    }
     .page-background{
         background-repeat: no-repeat;
         background-size: auto;
     }
 }
+
 
 
 /**Errors*/
@@ -179,15 +173,9 @@ div.err-wrapper > * {
     background-color: black;
 }
 .content{
-    rgba(55, 31, 101, 0.33)
-    opacity: 0.65;
     min-height: 300px;
     border-radius: 6px;
     margin-top: 20px;
-}
-.useless-link{
-    text-decoration: none;
-    color: black;
 }
 .form-box{
     max-width: 420px;
@@ -195,12 +183,6 @@ div.err-wrapper > * {
     margin-right: auto;
 }
 
-.olive{
-
-}
-.purple-rain{
-
-}
 .form-inline-element-wrapper{
     width: 98%;
     text-align: start;
@@ -329,4 +311,26 @@ input{
 
 form.box{
     border: 2px solid rgba(30, 105, 30, 0.67)
+}
+.header-links{
+    color: white;
+    text-decoration: none;
+    padding: 7px;
+    margin-left: 2px;
+    margin-right: 2px;
+    border-radius: 11px;
+    vertical-align: middle;
+    display: inline-block;
+
+}
+.header-links-box{
+    float: right;
+    height: 100%;
+    margin-right: 2%;
+    margin-top: 1%;
+}
+@media screen and (max-width: 410px) {
+    .header-links-box{
+        display: none;
+    }
 }

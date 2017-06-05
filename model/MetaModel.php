@@ -21,6 +21,7 @@ abstract class MetaModel
      * REGEX_TAGS-cover all tags on object
     */
     const REGEX_COLUMNS = "/^(t[A-Z]{1}[a-zA-z\_]+)$/";
+    protected static $columns = [];
     /***
      * @var Db $connection
      */
@@ -40,7 +41,7 @@ abstract class MetaModel
     }
 
     /**
-     * @return DbConnection
+     * @return Db
      */
     public function getConnection()
     {
@@ -51,13 +52,29 @@ abstract class MetaModel
     /**
      * @return array
      */
-    public function columns()
+    protected function columns()
     {
         $vars = array_keys(get_class_vars(get_called_class()));
         return array_filter($vars,function($var){
             return preg_match(self::REGEX_COLUMNS,$var);
         });
     }
+    public static function getColumns(){
+        if(count(self::$columns))return self::$columns;
+        $class = get_called_class();
+        $vars = get_class_vars($class);
+        foreach ($vars as $key=>$value){
+            if (preg_match(self::REGEX_COLUMNS,$key)){
+                array_push(self::$columns,$value);
+            }
+        }
+        return self::$columns;
+        /*$vars = array_keys(get_class_vars(get_called_class()));
+        return array_filter($vars,function($var){
+            return preg_match(self::REGEX_COLUMNS,$var);
+        });*/
+    }
+
 
     public static function filterArray($array,$handler){
         $fileterdArray = $array();

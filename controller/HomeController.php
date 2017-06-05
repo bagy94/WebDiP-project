@@ -11,7 +11,7 @@ namespace bagy94\controller;
 use bagy94\model\Log;
 use bagy94\model\Service;
 use bagy94\model\ServiceCategory;
-use bagy94\model\User;
+use bagy94\utility\Router;
 use bagy94\utility\UserSession;
 use SimpleXMLElement;
 
@@ -77,12 +77,32 @@ class HomeController extends Controller
     }
 
     /**
+     * Documentation page.
+     * @return \bagy94\utility\Response
+     */
+    function doc(){
+        $this->pageAdapter->getSettings()->addAsset(Router::asset("era"),"era");
+        $this->pageAdapter->setTitle("Dokumentacija");
+        return $this->render($this->pageAdapter->getHTML(2));
+    }
+
+    /**
+     * About page
+     * @return \bagy94\utility\Response
+     */
+    function about(){
+        $this->pageAdapter->getSettings()->addAsset(Router::asset("me","jpg"),"me");
+        $this->pageAdapter->setTitle("O autoru");
+        return $this->render($this->pageAdapter->getHTML(1));
+    }
+
+    /**
      * Returns array of possible actions
      * @return callable[]
      */
     function actions()
     {
-        return ["index","services"];
+        return ["index","services","doc","about"];
     }
 
     /**
@@ -91,6 +111,6 @@ class HomeController extends Controller
      */
     function templates()
     {
-        return ["view/index.tpl"];
+        return ["view/index.tpl","view/about.tpl","view/doc.tpl"];
     }
 }

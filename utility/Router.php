@@ -45,10 +45,18 @@ class Router
         return $url.$afterRootPath;
     }
 
-    public function buildActionLink($controller,$action,$params=NULL,$HTTPS=FALSE)
+    public function buildActionLink($controller,$action=NULL,$args=NULL,$HTTPS=FALSE)
     {
-
-        return $HTTPS?
+        $path = [$controller];
+        if(isset($action)){
+            array_push($path,$action);
+        }
+        if(isset($args)){
+            array_push($path,$args);
+        }
+        return $HTTPS? $this->buildLink(sprintf("?%s",http_build_query([self::ROUTE=>implode("/",$path)])),$HTTPS):
+            $this->buildLink(sprintf("%s", implode("/",$path)), $HTTPS);
+        /*return $HTTPS?
             $this->buildLink(
                 sprintf("?%s",
                     http_build_query(
@@ -62,7 +70,7 @@ class Router
             :
             $this->buildLink(
                 sprintf("%s/%s%s", $controller, $action, $params),
-                $HTTPS);
+                $HTTPS);*/
     }
 
     public static function Instance()
@@ -89,7 +97,7 @@ class Router
     }
 
 
-    public static function make($controller,$action,$args = NULL,$forceHTTPS=FALSE){
+    public static function make($controller,$action=NULL,$args = NULL,$forceHTTPS=FALSE){
 
         return self::Instance()->buildActionLink($controller,$action,$args,$forceHTTPS);
         /*$param = isset($args)?$args:"";
@@ -97,7 +105,7 @@ class Router
             self::buildRoute(sprintf("?%s", http_build_query([self::ROUTE=>implode("/", [$controller, $action, $param])])),$forceHTTPS):
             self::buildRoute(sprintf("%s/%s/%s", $controller, $action, $param),$forceHTTPS);*/
     }
-    public static function reqHTTPS($controller,$action,$getParams = NULL){
+    public static function reqHTTPS($controller,$action=NULL,$getParams = NULL){
         if( !isset($_SERVER["HTTPS"])){
             $url =self::make($controller,$action,$getParams,TRUE);
             //echo $url;
@@ -108,11 +116,13 @@ class Router
 
     public static function decode($route)
     {
+        //print_r(explode("?",$route));
         $request = explode("/",$route);
-        //print_r($request);
+
         $key = isset($request[0])?$request[0]:"error";
-        $action = isset($request[1])?$request[1]:"index";
-        $args = isset($request[2])?$request[2]:NULL;
+        $action = isset($request[1])?$request[1]:NULL;
+        $args = array_slice($request,2);
+        //print_r(self::splitArgs($args));
         return ['controller'=>$key, 'action'=>$action,'args'=>$args];
     }
 
@@ -146,5 +156,9 @@ class Router
         print_r($this->path);
         print_r($this->reqParts);
         return $this->buildRoot();
+    }
+
+    public static function splitArgs($args){
+        return array_chunk($args,2);
     }
 }

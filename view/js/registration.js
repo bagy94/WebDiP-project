@@ -63,7 +63,7 @@ function checkUserName() {
     }else{
         removeError($("#inputUserName"),"have-number");
     }
-    getXml({"username":value},onUserNameCheck,"registration/service/user-name","POST");
+    getXml({"username":value},onUserNameCheck,"registration/service/username","POST");
 }
 
 function check(element){
@@ -155,17 +155,25 @@ function checkEmail() {
 
 function hasSpecialChars(value,numberOfSpecialChars) {
     var num = defaultArg(numberOfSpecialChars,1);
-    var regex = new RegExp("([\.\(\)\{\}\'\!\#\“\\\/]{1}){"+num+"}");
-    return regex.test(value);
+    var regex = new RegExp('(.*[\.\(\)\{\}\'\!\#\“]+.*){'+num+',}');
+    return  regex.test(value);
 }
 
 function hasBigLetter(value,number){
     number = defaultArg(number,1);
-    var regex = new RegExp("([A-Z]{1}){"+number+",}");
+    var regex = new RegExp("(.*[A-Z]+.*){"+number+",}");
     return regex.test(value);
 }
 function hasNumber(value,number){
     number = defaultArg(number,1);
-    var regex = new RegExp("([0-9]{1}){"+number+",}");
+    var regex = new RegExp("(.*[0-9]+.*){"+number+",}");
     return regex.test(value);
 }
+function redirectToLogin(redirectTo){
+    window.setTimeout(function(){
+        window.location.href = "https://barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/?req=login";
+    }, 3000);
+
+
+}
+

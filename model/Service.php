@@ -153,15 +153,6 @@ class Service extends Model
 
 
     /**
-     * @return array
-     */
-    function getColumns()
-    {
-        return[];
-    }
-
-
-    /**
      * @param int $categoryId
      * @param int $reservationState
      * @param int $limit
