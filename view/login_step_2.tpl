@@ -1,8 +1,10 @@
 <section class="content">
-    <form action="{$actionPostCode}" method="POST">
-        <div class="form-inline-element-wrapper" >
+    <form action="{$actionCode}" method="POST">
+        <div class="box login-code" >
+            <label for="inputLogInCode">Kod za prijavu: </label>
             <input type="text" name="LogInCode">
-            <input type="submit" name="btnLogInCode">
+            <input type="submit" name="btnLogInCode" value="Potvrdi">
+            <p>Kod poslan na mail</p>
         </div>
     </form>
 </section>

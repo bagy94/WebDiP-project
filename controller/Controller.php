@@ -30,9 +30,8 @@ abstract  class Controller implements IController
         "home"=>"HomeController",
         "login"=>"LogInController",
         "registration"=>"RegistrationController",
-        "doc"=>"DocumentationController",
-        "about"=>"AboutController",
-        "theme"=>"ThemeService"
+        //"theme"=>"ThemeService"
+        
     ];
 
     /***
@@ -128,8 +127,7 @@ abstract  class Controller implements IController
             $response = $this->invokeAction($action,$args);
         }
         else{
-            $error = new ErrorController("Action not found");
-            $response = $error->invokeAction("index");
+            $response = self::showError("Action not found");
         }
         return $response;
     }
@@ -150,7 +148,7 @@ abstract  class Controller implements IController
             $response = $active->invokeAction($action,$args);
         }
         else{
-            $response = self::error("404 Page not found");
+            $response = self::showError("404 Page not found");
         }
         $response->show();
     }
@@ -171,7 +169,7 @@ abstract  class Controller implements IController
         return filter_input($post,$varName,$filter);
     }
 
-    protected function error($message){
+    protected function showError($message){
         if(!isset(self::$error)){
             self::$error = new WebPage(self::$errorTmpl,"Greška",NULL,"error 420");
         }

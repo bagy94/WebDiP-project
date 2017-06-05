@@ -25,7 +25,7 @@ class PageSettings
         self::LINKS_ASSET=>[]
     ];
 
-    public $footer=[];
+    public $header=[];
 
     public $icon;
     public $theme;/*[
@@ -55,7 +55,6 @@ class PageSettings
         $this->addJsLocal("base");
         $this->icon = Router::asset("icon");
         $this->theme = is_null($jsonTheme)?ThemeAdapter::defaultTheme():ThemeAdapter::parseJSON($jsonTheme);
-        $this->initFooter();
     }
 
     /**
@@ -63,16 +62,20 @@ class PageSettings
      */
     public function createMenu()
     {
+        $this->addMenuLink("Početna", Router::make("home"));
         switch (UserSession::getUserType()) {
             case UserSession::ADMINISTRATOR:
                 $this->addMenuLink("Postavke sustava", Router::make("admin"));
             case UserSession::MODERATOR:
             case UserSession::REGULAR:
+
             default:
-                $this->addMenuLink("Početna", Router::make("home"));
                 $this->addMenuLink("Prijava", Router::make("login"));
-                $this->addMenuLink("Registracija", Router::make("registration"));
         }
+        if(!UserSession::isLogIn()){
+            $this->addMenuLink("Registracija", Router::make("registration"));
+        }
+        $this->initHeaderLinks();
     }
 
 
@@ -147,8 +150,11 @@ class PageSettings
 
     }
 
-    public function initFooter(){
-        $this->footer["Dokumentacija"] =Router::make("home", "doc");
-        $this->footer["O autoru"] =  Router::make("home", "about");
+    public function initHeaderLinks(){
+        $this->header["Dokumentacija"] =Router::make("home", "doc");
+        $this->header["O autoru"] =  Router::make("home", "about");
+        if(UserSession::isLogIn()){
+            $this->header["Odjava"] =  Router::make("login", "signout");
+        }
     }
 }

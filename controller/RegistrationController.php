@@ -162,6 +162,7 @@ class RegistrationController extends Controller
                 }else{
                     $user->activate();
                     Log::write(self::ACTION_ACTIVATION_SUCCESS,"Korisnički račun aktivan",$user->getUserId());
+                    setcookie("master_cookie","accepted",time()+(86400 * 30),"/");
                     return $this->render($this->pageAdapter->getHTML(1));
                 }
             }else{

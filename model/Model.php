@@ -55,6 +55,7 @@ abstract class Model extends MetaModel implements IModel
 
     protected function init(){
         $query = $this::$QUERY_INIT_BY_ID;
+        //print $query;
         $id = $this->{self::$tId};
         if($this->connect($query,[$id])->prepare()->runQuery()){
             $data = $this->connection->getStm()->fetch(\PDO::FETCH_ASSOC);

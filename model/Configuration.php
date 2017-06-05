@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: bagy
@@ -11,25 +10,36 @@ require_once "Model.php";
 
 class Configuration extends Model
 {
-
+    const TIME_TYPE_MINUTES = 2;
+    const TIME_TYPE_SEC = 1;
+    const TIME_TYPE_DAYS = 3;
+    const TIME_TYPE_MONTHS = 4;
+    const TIME_TYPE_HOURS = 0;
 
     private static $ID = 1;
     private static $_instance = NULL;
 
-    const QUERY_TIME = "SELECT `interval` FROM `system_config` WHERE `id`=1";
-    const QUERY_NUM_OF_ROWS_IN_TABLE = "SELECT `no_rows` FROM `system_config` WHERE `id`=1";
-    const QUERY_ALL = "SELECT `interval`,`no_rows` FROM `system_config` WHERE `id`=1";
+    const QUERY_TIME = "SELECT `interval` FROM `sys_config` WHERE `id`=1";
+    const QUERY_NUM_OF_ROWS_IN_TABLE = "SELECT `no_rows` FROM `sys_config` WHERE `id`=1";
+    const QUERY_ALL = "SELECT `interval`,`no_rows` FROM `sys_config` WHERE `id`=1";
 
-    public static $QUERY_INIT_BY_ID = "SELECT * FROM `system_config` WHERE id=1";
+    public static $QUERY_INIT_BY_ID = "SELECT * FROM `sys_config` WHERE id=1";
 
-    public static $t = "system_config";
+    public static $t = "sys_config";
     public static $tId = "id";
     public static $tInterval = "interval";
     public static $tTableRows = "no_rows";
     public static $tActivationLinkDuration = "activation_link_duration";
     public static $tMaxLogIn = "max_login";
+    public static $tCookieDuration = "cookie_duration";
+    public static $tSessionDuration = "session_duration";
+    public static $tLogInCodeDuration = "login_code_duration";
+    public static $tRealSessionEnd = "real_time_session_end";
 
-    protected $id,$interval,$activation_link_duration,$no_rows,$max_login;
+    protected $id,$interval,$activation_link_duration,$no_rows,$max_login,$cookie_duration,$session_duration,$login_code_duration,$real_time_session_end;
+
+
+
 
     public function __construct($data = NULL)
     {
@@ -47,9 +57,64 @@ class Configuration extends Model
         return $this->interval;
     }
 
-    function getNew(){
-        $this->init();
+    /**
+     * Return real time end.
+     * @return int
+     */
+    public function getCookieEndTime()
+    {
+        return time()+(3600*((int)$this->getCookieDuration()));
     }
+
+    /**
+     * @return false|int
+     */
+    function currentTimestamp(){
+        return strtotime("$this->interval hours");
+    }
+
+    /**
+     * @param int $timeType
+     * @return false|int
+     */
+    function sessionDuration($timeType = self::TIME_TYPE_HOURS){
+        //return strtotime("$this->session_duration hours",$this->currentTimestamp());
+        settype($this->session_duration,"int");
+        switch ($timeType){
+            case self::TIME_TYPE_SEC: return (int)$this->session_duration;
+            case self::TIME_TYPE_MINUTES: return (int)$this->session_duration * 60;
+            case self::TIME_TYPE_DAYS: return (int)$this->session_duration * 60 * 60 * 24;
+            case self::TIME_TYPE_MONTHS:return (int)$this->session_duration *60* 60 * 24 * 30;
+            default:
+                return (int)$this->session_duration * 3600;
+        }
+    }
+
+    function sessionRealTimeDuration($timeType = self::TIME_TYPE_HOURS){
+        settype($this->real_time_session_end,"int");
+        switch ($timeType){
+            case self::TIME_TYPE_SEC: return (int)$this->real_time_session_end;
+            case self::TIME_TYPE_MINUTES: return (int)$this->real_time_session_end * 60;
+            case self::TIME_TYPE_DAYS: return (int)$this->real_time_session_end * 60 * 60 * 24;
+            case self::TIME_TYPE_MONTHS:return (int)$this->real_time_session_end *60* 60 * 24 * 30;
+            default:
+                return (int)$this->real_time_session_end * 3600;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * @return mixed
      */
@@ -140,14 +205,68 @@ class Configuration extends Model
         return $this;
     }
 
-
-
-
+    /**
+     * @return mixed
+     */
+    public function getCookieDuration()
+    {
+        return $this->cookie_duration;
+    }
 
     /**
-     * @return false|int
+     * @param mixed $cookie_duration
+     * @return Configuration
      */
-    function currentTimestamp(){
-        return strtotime("$this->interval hours");
+    public function setCookieDuration($cookie_duration)
+    {
+        $this->cookie_duration = $cookie_duration;
+        return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getSessionDuration()
+    {
+        return $this->session_duration;
+    }
+
+    /**
+     * @param mixed $session_duration
+     * @return Configuration
+     */
+    public function setSessionDuration($session_duration)
+    {
+        $this->session_duration = $session_duration;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLoginCodeDuration()
+    {
+        return $this->login_code_duration;
+    }
+
+    /**
+     * @param mixed $login_code_duration
+     * @return Configuration
+     */
+    public function setLoginCodeDuration($login_code_duration)
+    {
+        $this->login_code_duration = $login_code_duration;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRealTimeSessionEnd()
+    {
+        return $this->real_time_session_end;
+    }
+
+
+
 }

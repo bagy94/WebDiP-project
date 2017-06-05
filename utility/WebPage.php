@@ -7,7 +7,7 @@
  */
 
 namespace bagy94\utility;
-require_once "external_libs/smarty/libs/Smarty.class.php";
+//require_once "external_libs/smarty/libs/Smarty.class.php";
 use Smarty;
 
 

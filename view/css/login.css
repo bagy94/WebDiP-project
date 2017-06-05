@@ -43,3 +43,25 @@ input[type="submit"]{
     box-shadow: inset 0px -1px 14px 1px #5f5f5f;
     width: 35%;
 }
+div.box.login-code{
+    display: inline-block;
+    margin-top: 10%;
+    border: 3px solid #504c54;
+    padding: 2%;
+    border-radius: 6px;
+    background-color: rgba(201, 194, 204, 0.39);
+    box-shadow: 1px 0px 17px 12px #755b80
+
+}
+div.box.login-code>*:not(p){
+    margin: 6px;
+    border-radius: 4px;
+}
+div.box.login-code>p{
+    margin: 2px;
+    color: rgba(125, 104, 125, 0.91);
+    font-style: italic;
+}
+div.box.login-code>input{
+
+}

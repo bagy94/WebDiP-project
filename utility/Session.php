@@ -8,7 +8,6 @@
 
 namespace bagy94\utility;
 
-
 class Session
 {
     const DEFAULT_SESSION_NAME = "application_log_in_session";
@@ -26,25 +25,29 @@ class Session
 
     /**
      * Activate session.
+     * @param int $duration
      */
-    public function startSession(){
+    public function startSession($duration=NULL){
         session_name($this->SESSION_NAME);
 
-        if ($this->isActive()) {
+        if (!$this->isActive()) {
             session_start();
             session_regenerate_id();
         }
+        if(isset($duration)){
+            setcookie(session_name(),session_id(),time()+$duration,"/");
+        }
     }
     function set($key,$val){
-        $this->startSession();
+        $this->resume();
         $_SESSION[$key] = $val;
     }
     static function get($key){
         return isset($_SESSION[$key])?$_SESSION[$key]:NULL;
     }
     public function destroy(){
-        session_name(self::$SESSION_NAME);
-
+        session_name($this->SESSION_NAME);
+        setcookie(session_name(),"",time()-3600);
         if ($this->isActive()) {
             session_unset();
             session_destroy();
@@ -57,6 +60,14 @@ class Session
     public function isActive(){
         session_name($this->SESSION_NAME);
         return session_status() === PHP_SESSION_ACTIVE;
+    }
+
+    public function resume()
+    {
+        session_name($this->SESSION_NAME);
+        if(!$this->isActive()){
+            session_start();
+        }
     }
 
 }

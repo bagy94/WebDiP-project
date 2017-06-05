@@ -9,7 +9,7 @@
 namespace bagy94\utility;
 class Router
 {
-    //const DIR_ROOT = "WebDiP2016x005";
+    const DIR_ROOT = "WebDiP2016x005";
     const ROUTE = "req";
     const SERVICE = "service";
 
@@ -19,9 +19,14 @@ class Router
 
     function __construct()
     {
-        //$urlArrray = explode("/",$_SERVER["SCRIPT_NAME"]);
+
         $this->reqParts = explode("/",$_SERVER["HTTP_HOST"].dirname($_SERVER["SCRIPT_NAME"]));
-        //$this->reqParts = array_slice($urlArrray, 0, array_search(self::DIR_ROOT, $urlArrray, true) +1);
+        //
+    }
+    function buildProjectRoot(){
+        $urlArrray = explode("/",$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"]);
+        $this->reqParts = array_slice($urlArrray, 0, array_search(self::DIR_ROOT, $urlArrray, true) +1);
+        return $this->reqParts;
     }
 
     public function build()

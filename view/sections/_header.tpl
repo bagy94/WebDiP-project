@@ -23,7 +23,7 @@
         <h1>{$title}</h1>
         <div class="header-links-box">
             <span class="verticalAlignHelper"></span>
-            {foreach from=$ps->footer key=k item=v}
+            {foreach from=$ps->header key=k item=v}
             <a href="{$v}" style="background-color:{$ps->theme.menu.li.background_color};" class="header-links">{$k}</a></li>
             {/foreach}
         </div>
