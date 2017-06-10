@@ -55,7 +55,7 @@ class RegistrationController extends Controller
      */
     function actions()
     {
-        return ["index","service","postForm","activation"];
+        return ["index","service","submit","activation"];
     }
 
     /**
@@ -64,7 +64,7 @@ class RegistrationController extends Controller
      */
     function templates()
     {
-        return ["view/registration.tpl","view/activation.tpl"];
+        return ["registration.tpl","activation.tpl","mail_tpl/activation_mail.tpl"];
     }
 
     function index()
@@ -111,13 +111,15 @@ class RegistrationController extends Controller
         return $this->render($xmlRoot,Response::RESPONSE_XML);
     }
 
-    function postForm(){
+    function submit(){
         if(!$this->recaptchaCheck()){
             $this->formHasErrors = ["Recaptcha nije unesena"];
             return $this->selfInvoke("index");
         }
+        //var_dump($_POST);
+        //var_dump($_GET);
         $this->user = new User();
-        $this->user->setName($this->filterInput("name"));
+        $this->user->setName($this->filterPost("name"));
         $this->user->setSurname($this->filterInput("surname"));
         $this->user->setBirthday($this->filterInput("birthday"));
         $this->user->setGender($this->filterInput("gender"));
@@ -125,7 +127,7 @@ class RegistrationController extends Controller
         $this->user->setEmail($this->filterInput("email"));
         $this->user->setPassword($this->filterInput("password"));
         $this->user->setLogInType($this->filterInput("log-in-type"));
-        //print_r($this->user);
+        //var_dump($this->user);
         if(!$this->user->isRegistrationCorrect()){
             Log::write(self::ACTION_REGISTR_UNSUCCESS,"Neuspiješna registracija/".$this->user->getUserName(),$this->user->getUserId());
             $this->formHasErrors = $this->user->getErrors();
@@ -133,7 +135,14 @@ class RegistrationController extends Controller
         }else{
             if($this->user->registration()){
                 Log::write(self::ACTION_REGISTR_SUCCES,"Registracija/".$this->user->getUserName(),$this->user->getUserId());
-                if($this->user->sendActivationMail()){
+
+                $this->pageAdapter->assignArrayOfVar([
+                    "name"=>$this->user->getName(),
+                    "surname"=>$this->user->getSurname(),
+                    "link"=>Router::make("registration","activation",$this->user->getActivationHash())
+                ]);
+                $message = $this->pageAdapter->displayContent(2);
+                if($this->user->sendMail("Mail za aktivaciju korisničkog računa",$message)){
                     return self::redirect("login","index");
                 }
             }

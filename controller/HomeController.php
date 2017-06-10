@@ -47,6 +47,7 @@ class HomeController extends Controller
         $this->pageAdapter->getSettings()->addJsLocal("index");
         $this->pageAdapter->getSettings()->addCssLocal("index");
         Log::write(self::ACTION_VISIT_HOME,"Pregled home/index");
+        //var_dump($_SESSION);
         return $this->render($this->pageAdapter->getHTML());
     }
     //isset($_GET[self::ARG_POST_SERVICE_CATEGORY_ID]
@@ -57,6 +58,7 @@ class HomeController extends Controller
      */
     function services(){
         $xml = new SimpleXMLElement("<xml/>");
+        //var_dump($_POST);
         $scid = $this->filterPost(self::ARG_POST_SERVICE_CATEGORY_ID,NULL,FILTER_SANITIZE_NUMBER_INT);
         if(!$scid){
             $xml->addAttribute("success","0");
@@ -118,6 +120,6 @@ class HomeController extends Controller
      */
     function templates()
     {
-        return ["view/index.tpl","view/about.tpl","view/doc.tpl"];
+        return ["index.tpl","about.tpl","doc.tpl"];
     }
 }

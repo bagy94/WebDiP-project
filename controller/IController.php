@@ -38,4 +38,5 @@ interface IController
      * @return string[]
      */
     function templates();
+
 }

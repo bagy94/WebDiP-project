@@ -22,16 +22,20 @@ abstract  class Controller implements IController
     const RESPONSE_JSON = "json";
     const RESPONSE_XML = "xml";
 
+
+    const TAG_SUCCESS = "success";
+    const TAG_MESSAGE = "message";
+
     protected static $error=NULL;
 
-    private static $errorTmpl = ["view/error.tpl"];
+    private static $errorTmpl = ["error.tpl"];
 
     private static $controllers=[
         "home"=>"HomeController",
         "login"=>"LogInController",
         "registration"=>"RegistrationController",
         //"theme"=>"ThemeService"
-        
+        "admin"=>"AdminController"
     ];
 
     /***
@@ -62,12 +66,12 @@ abstract  class Controller implements IController
      * @param string $title
      * @param string $keywords
      */
-    function __construct($title, $keywords="page")
+    function __construct($title, $keywords="page",$page=NULL)
     {
         $this->actions = $this->actions();
         $this->templates = $this->templates();
         self::$KEY = $this::$KEY;
-        $this->pageAdapter = new WebPage($this->templates,$title,NULL,$keywords);
+        $this->pageAdapter =isset($page)?$page:new WebPage($this->templates,$title,NULL,$keywords);
     }
 
     /***
@@ -75,6 +79,7 @@ abstract  class Controller implements IController
      */
     function hasAction($action)
     {
+        //var_dump(is_array($this->actions));
         return is_array($this->actions) && in_array($action,$this->actions) && method_exists($this,$action);
     }
 
@@ -83,6 +88,8 @@ abstract  class Controller implements IController
      */
     function invokeAction($action, $args = NULL)
     {
+        //echo $action;
+        //print_r($args);
         return $this->{$action}($args);
     }
 
@@ -137,6 +144,7 @@ abstract  class Controller implements IController
         $controller = isset($urlParts["controller"])?$urlParts["controller"]:"error";
         $action = isset($urlParts["action"])?$urlParts["action"]:"index";
         $args = isset($urlParts["args"])?$urlParts["args"]:NULL;
+        //print_r($args);
         if(array_key_exists($controller,self::$controllers)){
             $class =sprintf("%s\\%s",__NAMESPACE__,self::$controllers[$controller]);
             if(class_exists($class)){
@@ -169,7 +177,7 @@ abstract  class Controller implements IController
         return filter_input($post,$varName,$filter);
     }
 
-    protected function showError($message){
+    public function showError($message){
         if(!isset(self::$error)){
             self::$error = new WebPage(self::$errorTmpl,"Greška",NULL,"error 420");
         }
