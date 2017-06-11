@@ -11,17 +11,23 @@ require_once "db/Db.php";
 use bagy94\utility\db\Db;
 use bagy94\utility\UserSession;
 
-class Log
+class Log extends Model
 {
-    private static $_instance = NULL;
+    public static $t = "sys_log";
 
-    private $db;
-    private $stm;
-    private $user;
 
-    private function __construct()
+    public static $tId = "log_id";
+    public static $tActionId = "action_id";
+    public static $tUserCreatedId = "user_id";
+    public static $tContent = "content";
+
+    private $log_id,$action_id,$user_id,$content;
+
+    private static $_instance=NULL;
+
+    public function __construct()
     {
-        $this->db = new Db();
+        parent::__construct(NULL,NULL);
     }
 
     private static function Instance(){
@@ -36,7 +42,7 @@ class Log
         if(!$userid){
             $userid = UserSession::log();
         }
-        return self::Instance()->db->writeLog($actionId,$userid,$content);
+        return self::Instance()->connect()->writeLog($actionId,$userid,$content);
     }
 
     public static function get($limit=NULL,$offset)
@@ -45,8 +51,80 @@ class Log
         $options .= isset($offset)?Db::offset($offset):"";
         return self::Instance()->db->getLogs($options);
     }
-    /*public static function db($query,$user,$params=NULL)
+
+
+
+
+
+
+
+
+
+
+
+    // Getters and setters
+    /**
+     * @return mixed
+     */
+    public function getLogId()
     {
-        //self::Instance()->db->writeLog("db",)
-    }*/
+        return $this->log_id;
+    }
+    /**
+     * @param mixed $log_id
+     * @return Log
+     */
+    public function setLogId($log_id)
+    {
+        $this->log_id = $log_id;
+        return $this;
+    }
+    /**
+     * @return mixed
+     */
+    public function getActionId()
+    {
+        return $this->action_id;
+    }
+    /**
+     * @param mixed $action_id
+     * @return Log
+     */
+    public function setActionId($action_id)
+    {
+        $this->action_id = $action_id;
+        return $this;
+    }
+    /**
+     * @return mixed
+     */
+    public function getUserId()
+    {
+        return $this->user_id;
+    }
+    /**
+     * @param mixed $user_id
+     * @return Log
+     */
+    public function setUserId($user_id)
+    {
+        $this->user_id = $user_id;
+        return $this;
+    }
+    /**
+     * @return mixed
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+    /**
+     * @param mixed $content
+     * @return Log
+     */
+    public function setContent($content)
+    {
+        $this->content = $content;
+        return $this;
+    }
 }

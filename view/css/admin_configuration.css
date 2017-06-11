@@ -1,0 +1,57 @@
+.btn-icn{
+    width: 20px;
+    height: 20px;
+}
+section.content{
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.inline-box-wrapper{
+    display: inline-block;
+    margin: 7px;
+    border-bottom:1px solid gray;
+    text-align: start;
+    width: 100%;
+}
+.inline-box-wrapper>.input-box{
+    float: right;
+    display: inline-block;
+    text-align: center;
+    margin:3px;
+}
+input[type='number']{
+    width: 70px;
+    height: 30px;
+    font-size: 16px;
+    text-align: center;
+
+}
+.box.clock{
+    display: inline-block;
+    font-size: 18px;
+}
+@media screen and (min-width: 600px){
+    .inline-box-wrapper{
+        width: 90%;
+    }
+}
+
+@media screen and (min-width: 900px){
+    .inline-box-wrapper{
+        width: 80%;
+    }
+}
+
+@media screen and (min-width: 1200px){
+    .inline-box-wrapper{
+        width: 70%;
+    }
+}
+
+@media screen and (min-width: 1400px){
+    .inline-box-wrapper{
+        width: 60%;
+    }
+}
+

@@ -1,29 +1,22 @@
 <?php
-use bagy94\controller\Controller;
 
 /**
  * Created by PhpStorm.
  * User: bagy
- * Date: 09.06.17.
- * Time: 02:43
+ * Date: 10.06.17.
+ * Time: 21:51
  */
-class ServiceXml extends Controller
+use bagy94\controller\Controller;
+class ModeratorController extends Controller
 {
 
     /**
      * Returns array of possible actions
      * @return callable[]
      */
-
-    function index($args=NULL){
-
-    }
-
-
-
     function actions()
     {
-       return ["index"];
+        return[];
     }
 
     /**
@@ -32,6 +25,6 @@ class ServiceXml extends Controller
      */
     function templates()
     {
-        return["_service.tpl"];
+        return [];
     }
 }

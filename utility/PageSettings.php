@@ -28,32 +28,20 @@ class PageSettings
     public $header=[];
 
     public $icon;
-    public $theme;/*[
-        self::HEADER =>[
-            "background_color"=>"rgb(65, 4, 103);"
-        ],
-        self::HTML=>[
-            "background_image"=>""
-        ],
-        "section"=>[
-            "background_color"=>"rgba(127, 72, 154, 0.46)",
-            "opacity"=>"0.65"
-        ],
-        "li"=>[
-            "background_color"=>"rgba(127, 72, 154, 0.46)",
-            "shadow_color"=>"#b4a2bb",
-            "text_color"=>"black"
-        ],
-        "font"=>"\"Times New Roman\"",
-        "footer"=>"rgb(65, 4, 103)"
-    ];*/
+    public $theme;
 
 
-    function __construct($jsonTheme=NULL)
+    function __construct($jsonTheme=NULL,$addBaseLocalJs = TRUE,$addBaseLocalCss=TRUE,$addIconLocal=TRUE)
     {
-        $this->addCssLocal("base");
-        $this->addJsLocal("base");
-        $this->icon = Router::asset("icon");
+        if($addBaseLocalCss){
+            $this->addCssLocal("base");
+        }
+        if($addBaseLocalJs){
+            $this->addJsLocal("base");
+        }
+        if($addIconLocal){
+            $this->icon = Router::asset("icon");
+        }
         $this->theme = is_null($jsonTheme)?ThemeAdapter::defaultTheme():ThemeAdapter::parseJSON($jsonTheme);
     }
 
@@ -63,17 +51,22 @@ class PageSettings
     public function createMenu()
     {
         $this->addMenuLink("Početna", Router::make("home"));
-        switch (UserSession::getUserType()) {
-            case UserSession::ADMINISTRATOR:
-                $this->addMenuLink("Postavke sustava", Router::make("admin"));
-            case UserSession::MODERATOR:
-            case UserSession::REGULAR:
-
-            default:
-                $this->addMenuLink("Prijava", Router::make("login"));
-        }
+        $this->addMenuLink("Prijava", Router::make("login",NULL,NULL,TRUE));
         if(!UserSession::isLogIn()){
-            $this->addMenuLink("Registracija", Router::make("registration"));
+            $this->addMenuLink("Registracija", Router::make("registration",NULL,NULL,TRUE));
+        }
+        else{
+            switch (UserSession::getUserType()) {
+                case UserSession::ADMINISTRATOR:
+                    $this->addMenuLink("Postavke sustava", Router::make("admin","configuration"));
+                    $this->addMenuLink("CRUD", Router::make("crud"));
+                    $this->addMenuLink("Upravljanje korisnicima", Router::make("admin","user_control"));
+                    $this->addMenuLink("Dnevnik", Router::make("admin","log"));
+                case UserSession::MODERATOR:
+                case UserSession::REGULAR:
+
+                default:
+            }
         }
         $this->initHeaderLinks();
     }
@@ -84,7 +77,7 @@ class PageSettings
      * @param string $title
      * @param string $path
      */
-    private function addMenuLink($title, $path)
+    public function addMenuLink($title, $path)
     {
         $this->links[self::LINKS_MENU][$title]= $path;
     }

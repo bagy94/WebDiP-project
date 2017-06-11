@@ -28,16 +28,19 @@ abstract class Model extends MetaModel implements IModel
 
     protected $created_at,$deleted=0;
 
-    protected $sysConfig = NULL;
-
-    public function __construct($id=NULL,$data=NULL)
+    /**
+     * Model constructor.
+     * @param null $id
+     * @param null $data
+     */
+    public function __construct($id=NULL, $data=NULL)
     {
         self::$t = $this::$t;
         self::$tId = $this::$tId;
         if(!is_null($data)){
             $this->initData($data);
         }
-        else if (!is_null($id)){
+        else if (!is_null($id) && is_numeric($id)){
             $this->{self::$tId} = $id;
             $this->init();
         }
@@ -47,12 +50,17 @@ abstract class Model extends MetaModel implements IModel
     /**
      * Insert | Update object in Database
      * @param array $columnsToSave
+     * @return bool
      */
     function save($columnsToSave = array())
     {
-
+        return $this->update($columnsToSave);
     }
 
+    /**
+     * Initialize object by its id
+     * @return bool
+     */
     protected function init(){
         $query = $this::$QUERY_INIT_BY_ID;
         //print $query;
@@ -65,9 +73,19 @@ abstract class Model extends MetaModel implements IModel
         return isset($data);
     }
 
-    protected function insert($values=[]){
-        $this->connect();
-        if($this->connection->makeInsert($this::$t,$values)->prepare()->runQuery()){
+    /**
+     * Save object data in databse
+     * If not all columns, pass them in $values
+     * @param array $columnsValues
+     * @return bool
+     */
+    protected function insert($columnsValues=[]){
+        if(!(isset($columnsValues) && count($columnsValues))){
+            $columnsValues = $this::getColumns();
+        }
+
+
+        if($this->connection->makeInsert($this::$t,$this->toParamsExclude())->prepare()->runQuery()){
             $id = $this::$tId;
             $this->$id = $this->connection->lastId();
         }
@@ -159,11 +177,58 @@ abstract class Model extends MetaModel implements IModel
         return $model;
     }
 
+
+    /**
+     * @param \SimpleXMLElement $xmlRoot
+     * @param array $columns
+     * @return $this
+     */
+    public function toXML($xmlRoot, $columns=NULL)
+    {
+        if(is_array($columns) && !count($columns)){
+            $columns = $this::getColumns();
+        }
+        //var_dump($columns);
+        foreach ($columns as $col){
+            //var_dump($col);
+            if($this->$col instanceof Model){
+                $class = get_class($this->$col);
+                $child = $xmlRoot->addChild($class);
+                $this->$col->toXml($child);
+            }
+            else{
+                $xmlRoot->addAttribute($col,$this->$col);
+            }
+        }
+        return $this;
+    }
+
+
+
     /**
      * @param null $columns
      * @param string $constraint
      * @param string $options
-     * @return mixed
+     * @return object[]|null
+     */
+    public static function getAllAsArray($columns=NULL, $constraint="", $options="")
+    {
+        $class = get_called_class();
+        $table = $class::$t;
+        $query = Db::makeQuery("SELECT",[$table],$columns,$constraint,$options);
+        //var_dump($query);
+        $connection = new Db($query,null);
+        $connection->log_prepared(UserSession::log());
+        $stm = $connection->runQuery()?$connection->getStm()->fetchAll(\PDO::FETCH_CLASS,$class):NULL;
+        unset($connection);
+        return $stm;
+    }
+
+    /**
+     * @param null $columns
+     * @param string $constraint
+     * @param string $options
+     * @return \PDOStatement
      */
     public static function getAll($columns=NULL, $constraint="", $options=""){
         $class = get_called_class();
@@ -175,6 +240,20 @@ abstract class Model extends MetaModel implements IModel
         unset($connection);
         return $stm;
     }
+
+    public static function search($value,$constraintColumn,$options="")
+    {
+        $class = get_called_class();
+        $table = $class::$t;
+        $db = new Db(trim(Db::makeQuery("SELECT",[$table],NULL,"")));
+        $db->like([$constraintColumn=>$value]);
+        $objects = $db->prepare()->runQuery() ?$db->getStm()->fetchAll(\PDO::FETCH_CLASS,$class):NULL;
+        //var_dump($objects);
+        $db->disconnect();
+        return $objects;
+    }
+
+
 
     public function test(){print_r($this->{self::$tId});}
 

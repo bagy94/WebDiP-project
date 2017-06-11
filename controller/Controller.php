@@ -11,6 +11,7 @@ namespace bagy94\controller;
 use bagy94\utility\Response;
 use bagy94\utility\Router;
 use bagy94\utility\WebPage;
+use SimpleXMLElement;
 
 abstract  class Controller implements IController
 {
@@ -29,13 +30,20 @@ abstract  class Controller implements IController
     protected static $error=NULL;
 
     private static $errorTmpl = ["error.tpl"];
+    /***
+     * @var mixed
+     */
+    protected $response=NULL;
+    private $responseType = Response::RESPONSE_HTML;
+
 
     private static $controllers=[
         "home"=>"HomeController",
         "login"=>"LogInController",
         "registration"=>"RegistrationController",
         //"theme"=>"ThemeService"
-        "admin"=>"AdminController"
+        "admin"=>"AdminController",
+        "crud"=>"CRUDController"
     ];
 
     /***
@@ -122,14 +130,22 @@ abstract  class Controller implements IController
 
     /**
      * @param mixed $data
-     * @param string $responseType
      * @return Response
      */
-    public function render($data, $responseType="HTML"){
-        return new Response($data,$responseType);
+    public function render($data=NULL){
+        $data = isset($data)?$data:$this->response;
+        //var_dump($data);
+        //var_dump($this->response);
+        return new Response($data,$this->responseType);
     }
 
-    protected function selfInvoke($action,$args=NULL){
+    /**
+     * Checks if method exist and invoke it
+     * @param $action
+     * @param null $args
+     * @return Response
+     */
+    protected function selfInvoke($action, $args=NULL){
         if($this->hasAction($action)){
             $response = $this->invokeAction($action,$args);
         }
@@ -139,6 +155,10 @@ abstract  class Controller implements IController
         return $response;
     }
 
+    /**
+     * Invoke corresponting controller and his action.
+     * @param array $urlParts
+     */
     public static function invokeController($urlParts=[])
     {
         $controller = isset($urlParts["controller"])?$urlParts["controller"]:"error";
@@ -152,6 +172,7 @@ abstract  class Controller implements IController
             }
         }
         //print_r($active);
+        //var_dump($active);
         if(isset($active) && $active->hasAction($action)){
             $response = $active->invokeAction($action,$args);
         }
@@ -161,13 +182,27 @@ abstract  class Controller implements IController
         $response->show();
     }
 
-    protected static function redirect($controller,$action="index",$args=NULL)
+    /**
+     * Exists current work and goes to new controller and action
+     * @param $controller
+     * @param string $action
+     * @param null $args
+     */
+    protected static function redirect($controller, $action="index", $args=NULL)
     {
         $url = Router::make($controller,$action,$args);
         header("Location: $url");
         exit(1);
     }
-    protected function filterPost($varName,$post=NULL,$filter=NULL){
+
+    /**
+     * Filter $_POST variable
+     * @param $varName
+     * @param null $post
+     * @param null $filter
+     * @return mixed
+     */
+    protected function filterPost($varName, $post=NULL, $filter=NULL){
         if($post === NULL){
             $post = INPUT_POST;
         }
@@ -177,6 +212,11 @@ abstract  class Controller implements IController
         return filter_input($post,$varName,$filter);
     }
 
+    /**
+     * Shows error if action/confroller not found
+     * @param $message
+     * @return Response
+     */
     public function showError($message){
         if(!isset(self::$error)){
             self::$error = new WebPage(self::$errorTmpl,"Greška",NULL,"error 420");
@@ -184,4 +224,138 @@ abstract  class Controller implements IController
         self::$error->assign("message",$message);
         return new Response(self::$error->getHTML());
     }
+
+
+    protected function unsuccessXMLResponse($message){
+        if(!isset($this->response)){
+            $this->response = new SimpleXMLElement("<service/>");
+        }
+        $this->response->addAttribute(self::TAG_SUCCESS,0);
+        $this->response->addAttribute(self::TAG_MESSAGE,$message);
+        return $this;
+    }
+
+
+    protected function build($template=NULL){
+        if(is_a($this->response,"SimpleXMLElement")){
+            $this->responseType = Response::RESPONSE_XML;
+        }else{
+            $template = isset($template) && count($this->templates) > $template?$template:0;
+            $this->response = $this->pageAdapter->getHTML($template);
+            //var_dump($this->response);
+            $this->responseType = Response::RESPONSE_HTML;
+        }
+        return $this;
+    }
+    protected function isResponseSet(){
+        return isset($this->response);
+    }
+
+    /**
+     * @param $message
+     * @return Response
+     */
+    protected function failedService($message)
+    {
+        $this->response = new \SimpleXMLElement("<service/>");
+        $this->response->addAttribute(self::TAG_SUCCESS,0);
+        $this->response->addAttribute(self::TAG_MESSAGE,$message);
+        return new Response($this->response,Response::RESPONSE_XML);
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * @param mixed $response
+     * @return Controller
+     */
+    public function setResponse($response)
+    {
+        $this->response = $response;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getActions()
+    {
+        return $this->actions;
+    }
+
+    /**
+     * @param array $actions
+     * @return Controller
+     */
+    public function setActions($actions)
+    {
+        $this->actions = $actions;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTemplates()
+    {
+        return $this->templates;
+    }
+
+    /**
+     * @param array $templates
+     * @return Controller
+     */
+    public function setTemplates($templates)
+    {
+        $this->templates = $templates;
+        return $this;
+    }
+
+    /**
+     * @return WebPage
+     */
+    public function getPageAdapter()
+    {
+        return $this->pageAdapter;
+    }
+
+    /**
+     * @param WebPage $pageAdapter
+     * @return Controller
+     */
+    public function setPageAdapter($pageAdapter)
+    {
+        $this->pageAdapter = $pageAdapter;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResponseType()
+    {
+        return $this->responseType;
+    }
+
+    /**
+     * @param string $responseType
+     * @return Controller
+     */
+    public function setResponseType($responseType)
+    {
+        $this->responseType = $responseType;
+        if($this->responseType === Response::RESPONSE_XML){
+            $this->response = new \SimpleXMLElement("<service/>");
+        }
+        return $this;
+    }
+
+
 }

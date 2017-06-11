@@ -8,6 +8,7 @@
  */
 namespace bagy94\controller;
 use bagy94\model\Configuration;
+use bagy94\model\Log;
 use bagy94\model\User;
 use bagy94\utility\PageSettings;
 use bagy94\utility\Response;
@@ -19,7 +20,6 @@ use bagy94\utility\WebPage;
 class PrivateController extends Controller
 {
     const VISIT_INDEX = 25;
-    const ACTION_SERVICE_GET_USERS = 26;
     const LIMIT_START = "index_start";
     const LIMIT_STOP = "index_stop";
 
@@ -29,8 +29,8 @@ class PrivateController extends Controller
 
     const ARG_ACTION = "users";
 
-    const ARG_CONTROL_ACTION_UNLOCK = "unlock";
-    const ARG_CONTROL_ACTION_LOCK = "lock";
+    const ARG_CONTROL_ACTION_UNLOCK = "0";
+    const ARG_CONTROL_ACTION_LOCK = "1";
     const ARG_CONTROL_ACTION_SEARCH= "q";
 
 
@@ -42,7 +42,6 @@ class PrivateController extends Controller
     /***
      * @var \SimpleXMLElement|null $serviceResponse
      */
-    private $serviceResponse = NULL;
 
     function __construct()
     {
@@ -74,39 +73,31 @@ class PrivateController extends Controller
 
         $this->initFiles();
         $this->pageAdapter->getSettings()->theme[ThemeAdapter::STYLE_BODY]["background_image"] = sprintf("url(%s)",Router::Instance()->buildProjectRoot()->buildLink("view/asset/background1.jpg"));
-
-        return $this->render($this->pageAdapter->getHTML());
+        Log::write(self::VISIT_INDEX,"Pregled private direktorija");
+        return $this->build()->render();
     }
 
+    /**
+     * @param null $args
+     * @return Response
+     */
     public function service($args=NULL)
     {
-        $this->serviceResponse = new \SimpleXMLElement("<service/>");
-
         $control = isset($args[0])?$args[0]:NULL;
         $action = isset($args[1])?$args[1]:NULL;
+        $this->setResponseType(Response::RESPONSE_XML);
         //var_dump($args);
         if(!strcmp($control,self::ARG_ACTION)){
-            echo $action;
             switch ($action){
-                case self::ARG_CONTROL_ACTION_UNLOCK:
-                    $this->unlock();
-                    break;
-                case self::ARG_CONTROL_ACTION_LOCK:
-                    $this->lock();
-                    break;
-                case self::ARG_CONTROL_ACTION_SEARCH:
-                    $this->search();
-                    break;
+                case self::ARG_CONTROL_ACTION_UNLOCK:$this->unlock();break;
+                case self::ARG_CONTROL_ACTION_LOCK:$this->lock();break;
+                case self::ARG_CONTROL_ACTION_SEARCH:$this->search();break;
                 default:
                     $this->getUsers();
                 }
-        }else{
-            $this->serviceResponse->addAttribute("succes",0);
-            $this->serviceResponse->addAttribute("message","Controla nije pronađena");
+                return $this->render();
         }
-        //var_dump($this->serviceResponse);
-        return $this->render($this->serviceResponse,Response::RESPONSE_XML);
-
+        return $this->failedService("Kontrola nije pronađena");
     }
 
     public function showError($message)
@@ -129,18 +120,37 @@ class PrivateController extends Controller
     }
 
     private function unlock(){
+        $username = $this->filterPost(self::ARG_POST_USER_ID,NULL,FILTER_SANITIZE_STRING);
+        if($username){
+            $user = User::initByUserName($username);
+            if($user){
 
+                $this->response->addAttribute(self::TAG_SUCCESS,$user->setNumberOfWrongLogIn(0)->update([User::$tNumberOfLogIns]));
+                $this->response->addAttribute(self::TAG_MESSAGE,"Korisnik otključan");
+                Log::write(self::ACTION_SERVICE_XML,"Otključavanje korisnika u private direktoriju");
+            }else{
+                $this->unsuccessXMLResponse("Korisnik nije pronađen");
+            }
+        }else{
+            $this->unsuccessXMLResponse("Korisničko ime prazno");
+
+        }
     }
     private function lock(){
-
-    }
-    private function search()
-    {
-        if(count($_POST)>9){
-            $this->serviceResponse->addAttribute("succes",0);
-            $this->serviceResponse->addAttribute("message","Too many columns");
-        }
-        foreach ($_POST as $key=>$value){
+        $username = $this->filterPost(self::ARG_POST_USER_ID,NULL,FILTER_SANITIZE_STRING);
+        if($username){
+            $user = User::initByUserName($username);
+            if($user){
+                $foo =Configuration::Instance()->getMaxLogin();
+                settype($foo,"int");
+                $this->response->addAttribute(self::TAG_SUCCESS,$user->setNumberOfWrongLogIn($foo+1)->update([User::$tNumberOfLogIns]));
+                $this->response->addAttribute(self::TAG_MESSAGE,"Korisnik zaključan");
+                Log::write(self::ACTION_SERVICE_XML,"Zakljucavanje korisnika u private direktoriju");
+            }else{
+                $this->unsuccessXMLResponse("Korisnik nije pronađen");
+            }
+        }else{
+            $this->unsuccessXMLResponse("Korisničko ime prazno");
 
         }
     }
@@ -184,7 +194,7 @@ class PrivateController extends Controller
         );
         $maxLogIns = Configuration::Instance()->getMaxLogin();
         foreach ($users as $user){
-            $xmluser = $this->serviceResponse->addChild("user");
+            $xmluser = $this->response->addChild("user");
             if($user->getNumberOfWrongLogIn() >= $maxLogIns){
                 $user->setNumberOfWrongLogIn(1);
             }else{
@@ -203,7 +213,7 @@ class PrivateController extends Controller
                 User::$tNumberOfLogIns
             ]);
         }
-
+    Log::write(self::ACTION_SERVICE_XML,"Pregled korisnika");
     }
 
 
@@ -219,14 +229,14 @@ class PrivateController extends Controller
             Router::Instance()->buildProjectRoot()->buildLink("view/js/base.js")
         );
         $this->pageAdapter->getSettings()->addJS(
-            Router::Instance()->buildProjectRoot()->buildLink("view/js/admin.js")
+            Router::Instance()->buildProjectRoot()->buildLink("view/js/control_private.js")
         );
 
         $this->pageAdapter->getSettings()->addCSS(
             Router::Instance()->buildProjectRoot()->buildLink("view/css/base.css")
         );
         $this->pageAdapter->getSettings()->addCSS(
-            Router::Instance()->buildProjectRoot()->buildLink("view/css/admin.css")
+            Router::Instance()->buildProjectRoot()->buildLink("view/css/table.css")
         );
     }
 

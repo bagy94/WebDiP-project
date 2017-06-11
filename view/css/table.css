@@ -1,0 +1,63 @@
+.password{
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.small-cell{
+
+}
+.medium-cell{
+
+}
+.large-cell{
+
+}
+
+
+.table{
+    width: 99%;
+    padding: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.content{
+    background-color: rgba(77, 64, 78, 0.81);
+    padding: 11px;
+    /* box-shadow: -4px 3px 19px 16px rgba(114, 98, 119, 0.78); */
+}
+td{
+    box-shadow: -3px 3px 3px 1px #7d7373;
+    /* border-radius: 2px; */
+    background-color: rgba(177, 175, 175, 0.78);
+    padding: 3px;
+    /* margin: 15px; */
+    color: rgb(34, 21, 99);
+}
+.buttons-box>input{
+    height: 54px;
+    width: 50px;
+    display: inline-block;
+}
+th{
+    padding: 4px;
+}
+
+th:hover{
+    cursor: pointer;
+}
+.filter-row{
+
+}
+.not-filter {
+}
+.icon-status{
+    height: 30px;
+    width: 30px;
+}
+#inputSearch{
+    width: 25%;
+    float: right;
+    display: inline-block;
+}

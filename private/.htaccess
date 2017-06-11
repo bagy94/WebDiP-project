@@ -1,1 +1,9 @@
-RewriteEngine Off
+AuthUserFile /var/www/WebDiP/2016_projekti/WebDiP2016x005/private/.htpasswd
+AuthType Basic
+AuthName "Otključavanje korisnika"
+Require valid-user
+
+RewriteEngine On
+RewriteCond $0 !\.(jpg|gif|png|js|css|pdf|eot|woff|ttf|svg|ico)$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?req=$1 [QSA]

@@ -19,9 +19,11 @@ class UserSession
     const KEY_USER_ID = "user_id";
     const KEY_USER_TYPE = "type_id";
     const KEY_USERNAME = "username";
+    const SESSION_DURATION = "session_duration";
+    const LOG_IN_CODE = "login_code";
 
-    const START = "start";
-    const END = "end";
+    const SESSION_START = "start";
+    const LAST_ACTIVITY = "last_activity";
 
 
     const COOKIE_USERNAME = "user";
@@ -29,10 +31,21 @@ class UserSession
      * @var Session $session
      */
     private static $session;
+    /***
+     * @var Configuration $configuration
+     */
+    private static $configuration;
 
     private function __construct()
     {
 
+    }
+
+    public static function config(){
+        if (!isset(self::$configuration)){
+            self::$configuration = new Configuration();
+        }
+        return self::$configuration;
     }
 
     /**
@@ -68,21 +81,21 @@ class UserSession
      */
     public static function start($userid, $typeid, $username,$cookie=TRUE)
     {
-        self::session()->startSession(Configuration::Instance()->sessionRealTimeDuration());
+        self::session()->startSession(self::config()->sessionRealTimeDuration());
         self::session()->set(self::KEY_USER_ID,$userid);
         self::session()->set(self::KEY_USER_TYPE,$typeid);
         self::session()->set(self::KEY_USERNAME,$username);
-        $time = Configuration::Instance()->currentTimestamp();
-        settype($time,"int");
-
-        self::session()->set(self::START,date(Application::TIMESTAMP_FORMAT,$time));
-        self::session()->set(self::END,date(Application::TIMESTAMP_FORMAT,$time+Configuration::Instance()->sessionDuration()));
+        self::session()->set(self::LAST_ACTIVITY,
+            self::config()->currentTimestamp())
+        ;
+        self::session()->set(self::SESSION_START,self::config()->currentTimestamp());
         if($cookie){
             //echo "Setting cookie";
-            setcookie(self::COOKIE_USERNAME,$username,Configuration::Instance()->getCookieEndTime(),"/");
+            setcookie(self::COOKIE_USERNAME,$username,self::$configuration->getCookieEndTime(),"/");
         }else{
             setcookie(self::COOKIE_USERNAME,"",time()-(3600*5),"/");
         }
+        //var_dump($_SESSION);
         return $cookie;
     }
 
@@ -107,7 +120,17 @@ class UserSession
     public static function isLogIn()
     {
         self::session()->resume();
-        //print_r(self::session()->isActive());
+        $last = (int)Session::get(self::LAST_ACTIVITY);
+        $time = (int)Configuration::Instance()->currentTimestamp();
+
+        if(($last+Configuration::Instance()->sessionDuration(Configuration::TIME_TYPE_MINUTES))>$time){
+            self::session()->set(self::LAST_ACTIVITY,$time);
+        }else{
+            self::session()->free();
+            return FALSE;
+        }
+        //$last + duration > $current = active
+
         return self::session()->isSetValue(self::KEY_USER_ID)?TRUE:FALSE;
     }
 
@@ -117,6 +140,7 @@ class UserSession
      */
     public static function isAdmin()
     {
+        self::session()->resume();
         return Session::get(self::KEY_USER_TYPE) == self::ADMINISTRATOR;
     }
 
@@ -126,6 +150,7 @@ class UserSession
      */
     public static function isModerator()
     {
+        self::session()->resume();
         return self::get(self::KEY_USER_TYPE) == self::MODERATOR;
 
     }
@@ -136,6 +161,7 @@ class UserSession
      */
     public static function getUserId()
     {
+        self::session()->resume();
         return Session::get(self::KEY_USER_ID);
     }
 
@@ -144,6 +170,7 @@ class UserSession
      * @return string|null
      */
     public static function getUserName(){
+        self::session()->resume();
         return Session::get(self::KEY_USERNAME);
     }
 
@@ -153,11 +180,16 @@ class UserSession
      */
     public static function getUserType()
     {
+        self::session()->resume();
         return Session::get(self::KEY_USER_TYPE);
     }
 
     public static function log()
     {
-        return self::isLogIn()?self::getUserId():NULL;
+        return self::getUserId();
+    }
+
+    public static function isSessionEnded(){
+        return Session::get(self::LAST_ACTIVITY) > time();
     }
 }

@@ -24,6 +24,7 @@ class Db
 
     private static $UPDATE = "UPDATE %s SET %s WHERE %s";
     private static $INSERT = "INSERT INTO %s VALUES (%s)";
+    private static $INSERT_COLUMN = "INSERT INTO %s(%s) VALUES (%s)";
     private static $SELECT = "SELECT %s FROM %s";
     private static $SELECT_WHERE = "SELECT %s FROM %s WHERE %s";
 
@@ -165,7 +166,7 @@ class Db
         $this->connection= NULL;
     }
     /**
-     * ret new pdo instance for database in db_data.ini file
+     * Return new pdo instance for database in db_data.ini file
      * @return PDO
      * @throws Exception
      */
@@ -177,7 +178,6 @@ class Db
         unset($file);
         return $con;
     }
-
     /**
      * @param string $query
      * @param PDO $conn
@@ -194,6 +194,12 @@ class Db
         return $conn->query($query);
     }
 
+
+
+
+
+
+    // Getters and Setters
     /*** @return string */
     public function getQuery()
     {
@@ -215,7 +221,19 @@ class Db
         $this->queryParams = $queryParams;
     }
 
-    public function makeUpdate($table,$columns=[],$constraints=[],$constraintGlue = " AND ")
+    //Make query methods
+
+    /**
+     * Create update query and saves it in query variable.
+     * Prepare columns to be set and constraints to look after in update.
+     * Constraint glue is default on AND
+     * @param $table
+     * @param array $columns
+     * @param array $constraints
+     * @param string $constraintGlue
+     * @return $this
+     */
+    public function makeUpdate($table, $columns=[], $constraints=[], $constraintGlue = " AND ")
     {
         $this->prepareColumns($columns)->prepareConstraints($constraints);
         $this->setQuery(sprintf(self::$UPDATE,
@@ -223,8 +241,56 @@ class Db
             implode(",",$this->columns),
             implode($constraintGlue,$this->constraints)
         ));
+        //print $this->query;
         return $this;
     }
+
+
+    public function makeInsert($table,$columns=[]){
+        if (!count($columns))return NULL;
+        $foo = array();
+        foreach ($columns as $column){
+            array_push($this->columns,$column);
+            $this->queryParams[":var_$column"]= NULL;
+        }
+        $this->setQuery(sprintf(self::$INSERT_COLUMN,
+            $table,
+            implode(",",$this->columns),
+            implode(",",array_keys($this->queryParams))
+        ));
+
+        return $this;
+    }
+
+   /* public function makeSelect($tables=[],$columns=[],$constraint=[],$options = "")
+    {
+        $tab = implode(",",$tables);
+        $cols = isset($columns) && count($columns)?implode(",",$columns):"*";
+
+
+    }*/
+
+   public function makeSelect($tables=array(),$columns=array(),$constraints=array(),$constraintGlue= " AND ", $options =NULL){
+       $this->query = "SELECT ";
+       if (isset($columns) && count($columns)){
+           $this->query .= implode(",",$columns)." FROM ";
+       }else{
+           $this->query .= "* FROM ";
+       }
+       if(is_array()){
+           $this->query .= implode(",",$tables);
+       }else{
+           $this->query .= $tables;
+       }
+       if(count($constraints)){
+           $this->query .= " WHERE ".implode($constraintGlue,$constraints);
+       }
+       if(!$options){
+           $options = "";
+       }
+        $this->query .= $options;
+       return $this->query;
+   }
 
     public function prepareConstraints($constraints=[]){
         foreach ($constraints as $column=>$value){
@@ -247,6 +313,42 @@ class Db
         return $this;
     }
 
+    public function where($constraints=[],$glue= "AND"){
+        if (isset($constraints) && is_array($constraints)){
+            $last = end($constraints);
+            reset($constraints);
+            foreach ($constraints as $constraint=>$value){
+                $param = ":var_$constraint";
+                $this->queryParams[$param]=$value;
+                $this->query .= "`$constraint`= $param";
+                if($last !== $value)$this->query .= " $glue ";
+            }
+        }
+    }
+
+    public function like($columns=[],$glue="OR"){
+        $last = end($columns);
+        reset($columns);
+        foreach ($columns as $column=>$value){
+            $param = ":var_$column";
+            $this->queryParams[$param] = "%$value%";
+            $this->query .= "`$column` LIKE ($param)";
+            if($value !== $last)$this->query .=" $glue ";
+        }
+        return $this;
+    }
+    public function limit($start=0,$stop=50){
+        $this->query .= " LIMIT $start,$stop ";
+        return $this;
+    }
+    public function sort($column = 1,$desc=FALSE){
+        $this->query .= " ORDER BY $column";
+        if($desc){
+            $this->query .= " DESC";
+        }
+        return $this;
+    }
+
 
     public function lastId()
     {
@@ -254,17 +356,6 @@ class Db
             return $this->connection->lastInsertId();
         }
         return "-1";
-    }
-
-
-    public static function sort($column){
-        return is_null($column)?"":" ORDER BY {$column}";
-    }
-    public static function limit($numOfRows){
-        return is_numeric($numOfRows)?" LIMIT {$numOfRows}":"";
-    }
-    public static function offset($startPosition){
-        return is_numeric($startPosition)?" OFFSET {$startPosition}":"";
     }
 
     public function getStm()

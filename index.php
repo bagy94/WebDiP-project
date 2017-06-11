@@ -16,6 +16,8 @@ require_once "utility/Router.php";
 use bagy94\utility\Router;
 use bagy94\controller\Controller;
 
+//var_dump($_GET);
+//var_dump($_POST);
 if(isset($_GET[Router::ROUTE])){
     $route = filter_input(INPUT_GET,Router::ROUTE,FILTER_SANITIZE_URL);
     $route = $route === ""?"home/index":$route;

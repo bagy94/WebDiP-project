@@ -19,10 +19,16 @@ class User extends Model
     const QUERY_INIT_BY_USER_NAME = "SELECT * FROM `users` WHERE `user_name`= ?";
     const QUERY_INIT_BY_EMAIL = "SELECT * FROM `users` WHERE `email`= ?";
     const QUERY_INIT_BY_ACTIVATION = "SELECT * FROM `users` WHERE `activation_hash` = ?";
-    const QUERY_ADD_POINTS = "INSERT INTO `user_get_points_transaction` VALUES (DEFAULT,?,?,?,0)";
+    const QUERY_INIT_BY_LOG_IN_CODE = "SELECT * FROM `users` WHERE `log_in_code` = ?";
 
+
+
+    /***
+     * Query for insert new user. All data can be inserted except log_in_code and his end time.
+     * @var string
+     */
     public static $QUERY_INSERT ="INSERT INTO `users` VALUES 
-(DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_points,:var_created_at,:var_deleted)";
+                                  (DEFAULT,:var_user_name,:var_email,:var_password,:var_password_hash,:var_name,:var_surname,:var_birthday,:var_gender,:var_number_of_wrong_log_in,:var_log_in_type,NULL,NULL,:var_activation_hash,:var_activation_hash_created_at,:var_activation_hash_activated_at,:var_type_id,:var_points,:var_created_at,:var_deleted)";
 
     public static $t = "users";
     public static $tId = "user_id";
@@ -41,18 +47,19 @@ class User extends Model
     public static $tActivationHashActivatedAt = "activation_hash_activated_at";
     public static $tTypeId = "type_id";
     public static $tPoints = "points";
+    public static $tLogInCode = "log_in_code";
+    public static $tLogInCodeEndsOn = "log_in_code_ends_on";
 
     protected $user_id,$user_name,$email,$password,$password_hash,$name,$surname,$birthday,
             $gender,$number_of_wrong_log_in="0",$log_in_type,$activation_hash,$activation_hash_created_at,
-            $points=0,$activation_hash_activated_at=NULL,$type_id=3;
-
-
+            $points=0,$activation_hash_activated_at=NULL,$type_id=3,$log_in_code,$log_in_code_ends_on;
     private $errors=[];
+
+
 
     /**
      * User constructor.
-     * @param int|null $id
-     * @param array $data
+     * @inheritdoc
      */
     public function __construct($id = NULL,  $data =NULL)
     {
@@ -87,7 +94,13 @@ class User extends Model
         return self::initBy(self::QUERY_INIT_BY_ACTIVATION,[$act]);
     }
 
-
+    /**
+     * Function which does registration.
+     * Hashes password.
+     * Create hash for activation.
+     * Insert user in db.
+     * @return mixed
+     */
     public function registration(){
         if(!isset($this->type_id)){
             $this->type_id = "3";
@@ -101,25 +114,31 @@ class User extends Model
         if(!isset($this->created_at)){
             $this->created_at = Application::appTimeStamp();
         }
-        $userData = $this->toParamsExclude([self::$tId]);
+        $userData = $this->toParamsExclude([self::$tId,self::$tLogInCode,self::$tLogInCodeEndsOn]);
         //print_r($userData);
         if($this->connect(self::$QUERY_INSERT,$userData)->prepare()->runQuery()){
             $this->setUserId($this->connection->lastId());
         }
         return $this->getUserId();
     }
+
+    /**
+     * Test function for converting user to params
+     * @return array
+     */
     public function testParams(){
         return $this->toParamsExclude([self::$tId]);
     }
 
     /**
+     * Return if registration has errors.
      * @return bool
      */
     public function hasErrors(){
         return count($this->errors);
     }
     /**
-     * Check is correct:
+     * Server side data check upon user registration.
      * Name
      * Surname
      * Username
@@ -131,37 +150,49 @@ class User extends Model
      */
     public function isRegistrationCorrect(){
         //Check Name
-        if(!isset($this->name))
+        if(empty($this->name))
             array_push($this->errors,"Ime nije uneseno");
         else if($this->name[0] !== strtoupper($this->name[0]))
             array_push($this->errors,"Ime mora započinjati velikim slovom");
         //Check Surname
-        if(!isset($this->surname))
+        if(empty($this->surname))
             array_push($this->errors,"Prezime nije uneseno");
         else if($this->surname[0] !== strtoupper($this->surname[0]))
             array_push($this->errors,"Preyimeme mora započinjati velikim slovom");
+
+
         //Check Email
-        if(!isset($this->email))
+        if(empty($this->email))
             array_push($this->errors,"Email nije unesen");
         else if(!RegexUtility::checkEmail($this->email))
             array_push($this->errors,"Format email ne valja");
-        //Check Username
-        if(!isset($this->user_name))
+        else if (self::initByEmail($this->getEmail()) !== NULL)
+            array_push($this->errors,"Email postoji");
+
+
+        //Check User name
+        if(empty($this->user_name))
             array_push($this->errors,"Korisničko ime nije uneseno");
         elseif (strlen($this->user_name)<6)
             array_push($this->errors,"Korisničko ime mora biti više od 6 znakova");
         elseif (!RegexUtility::checkUserName($this->user_name))
             array_push($this->errors,"Korisničko ime mora sadržavati velika slova i brojeve");
+        else if(self::initByUserName($this->user_name) !== NULL)
+            array_push($this->errors,"Korisničko ime postoji");
+
         //Check Password
-        if(!isset($this->password))
+        if(empty($this->password))
             array_push($this->errors,"Loznika nije unesena");
         elseif(!RegexUtility::checkPassword($this->password))
             array_push($this->errors,"Lozinka mora sadržavati više od 6 znakova.\\n Mora imati 2 velika slova, 2 broja i 2 specijalna znaka.");
 
-        if (!isset($this->gender))
+        //Check gender
+        if (empty($this->gender))
             array_push($this->errors,"Spol nije unesen");
 
-        if (!isset($this->birthday))
+
+        //Check birthday
+        if (empty($this->birthday))
             array_push($this->errors,"Datum rođenja nije unesen");
         elseif (!RegexUtility::isBirthdayFormat($this->birthday))
             array_push($this->errors,"Datum rođenja nije u zadanom formatu");
@@ -170,11 +201,21 @@ class User extends Model
         return !count($this->errors);
     }
 
-    function sendMail($subject,$content,$headers=NULL){
-        return mail($this->getEmail(), $subject, $content,$headers);
+    /**
+     * Send html mail to user.
+     * @param $subject
+     * @param $content
+     * @return bool
+     */
+    function sendMail($subject, $content){
+        $header = "From: wellness@no-reply.foi.hr \r\n";
+        $header .= "MIME-Version: 1.0\r\n";
+        $header .="Content-type: text/html; charset=UTF-8";
+        return mail($this->getEmail(), $subject, $content,$header);
     }
 
     /**
+     * Return end of activation link as virtual time timestamp
      * @param $duration
      * @return false|int
      */
@@ -183,20 +224,107 @@ class User extends Model
         return strtotime("$duration hours",strtotime($this->getActivationHashCreatedAt()));
     }
 
-    public function sendActivationMail(){
-        $subject = "Mail za aktivaciju korisničkog računa";
-        $header = "From: wellness@no-reply.foi.hr \r\n";
-        $header .= "MIME-Version: 1.0\r\n";
-        $header .="Content-type: text/html; charset=UTF-8 \r\n";
-        $message = '<div style="box-shadow:4px 5px 6px 1px #64843a;text-align: left;padding: 18px;background-color: rgba(140, 146, 135, 0.6);border-radius: 7px;max-width:800px;color: #573988;">'
-            .'<p style="max-width: 80%;margin:5px;padding:3px;font-size:16px;padding: 3px;width: 80%;border-bottom: 1px solid rgba(214, 107, 107, 0.84);padding-left: 11px;font-family: Arial Black, Gadget, sans-serif;font-size: 25px;font-style: italic;margin: 3px 7px 7px 5px;">Hvala na registraciji</p>'
-            .'<p style="max-width:80%;margin:5px;padding:3px;font-size:16px;">Ime: '.$this->getName()."</p>"
-            .'<p style="max-width: 80%;margin:5px;padding:3px;font-size:16px;">Prezime: '.$this->getSurname()."</p>";
-        $link = Router::make("registration","activation",$this->getActivationHash());
-        $message .= '<p style="margin:5px;padding:3px;">Za aktivaciju korisničkog računa pristisnite na link: <a href="'.$link.'" target="_blank" style="color: green;text-decoration:blink;margin-left: 4px;">Aktivacijski link</a></p></div>';
-        return $this->sendMail($subject,$message,$header);
+    /**
+     * Update log in code if user have 2 steps log in
+     * @return bool
+     */
+    function saveLogInCode(){
+        return $this->update([self::$tLogInCode,self::$tLogInCodeEndsOn]);
     }
 
+    /**
+     * If password isn't correct update wrong attempt.
+     * @return bool
+     */
+    public function wrongLogIn()
+    {
+        $foo = intval($this->getNumberOfWrongLogIn());
+        $this->setNumberOfWrongLogIn(++$foo);
+        return $this->update([self::$tNumberOfLogIns]);
+    }
+
+    /**
+     * When user log in successfully it reset number of wrong log in and update it
+     * @return bool
+     */
+    public function resetLogInErrors()
+    {
+        $this->setNumberOfWrongLogIn(0);
+        return $this->update([self::$tNumberOfLogIns]);
+    }
+
+    /**
+     * Function which generates new password and if param is true it makes update in db
+     * @param bool $updateInDb
+     * @return bool|mixed
+     */
+    public function renewPassword($updateInDb = TRUE)
+    {
+        $this->setPasswordHash(hash("sha256",$this->getUserName()));
+        $this->setPassword(substr($this->getPasswordHash(),1,10));
+        return $updateInDb?$this->update([self::$tPassword,self::$tPasswordHash]):$this->getPasswordHash();
+    }
+
+    /**
+     * Function creates new hash for activation and save timestamp for activation created at.
+     * If param is true it will update values in database.
+     * @param bool $update
+     * @return bool|int
+     */
+    public function createNewActivation($update=TRUE)
+    {
+        $this->setActivationHash(hash("md5",$this->getUserName().time()));
+        $this->setActivationHashCreatedAt(Application::appTimeStamp());
+
+        if($update){
+            return $this->update([self::$tActivationHash,self::$tActivationHashCreatedAt]);
+        }
+        return 1;
+    }
+
+    /**
+     * Activate user account. Update activation_hash_activated_at.
+     * @return bool
+     */
+    public function activate()
+    {
+        $this->setActivationHashActivatedAt(Application::appTimeStamp());
+        return $this->update([self::$tActivationHashActivatedAt]);
+    }
+
+    /**
+     * Check if password is same as one in database.
+     * @param $password
+     * @return bool
+     */
+    public function isPasswordCorrect($password)
+    {
+        return !strcmp($this->getPassword(),$password);
+    }
+
+    /**
+     * Check if user is blocked.
+     * User is blocked if he tries to login with wrong password too many time(depends on sys_conf).
+     * @return bool
+     */
+    public function isUserAccountBlocked()
+    {
+        return $this->getNumberOfWrongLogIn() >= Configuration::Instance()->getMaxLogin();
+    }
+
+    /**
+     * Check if user has activate account.
+     * User can activate account by clicking on link which he gets on mail upon registration.
+     * @return bool
+     */
+    public function isActivated()
+    {
+        return isset($this->activation_hash_activated_at) && $this->activation_hash_activated_at !== "";
+    }
+
+    /***
+     * Getters and setters.
+     */
 
     /**
      * @return array
@@ -460,71 +588,38 @@ class User extends Model
     {
         return $this->points;
     }
-
     /**
-     * Function creates new hash for activation and save timestamp for activation created at.
-     * If param is true it will update values in database.
-     * @param bool $update
-     * @return bool|int
+     * @return mixed
      */
-    public function createNewActivation($update=TRUE)
+    public function getLogInCode()
     {
-        $this->setActivationHash(hash("md5",$this->getUserName().time()));
-        $this->setActivationHashCreatedAt(Application::appTimeStamp());
-
-        if($update){
-            return $this->update([self::$tActivationHash,self::$tActivationHashCreatedAt]);
-        }
-        return 1;
+        return $this->log_in_code;
     }
     /**
-     * Activate user account. Update activation_hash_activated_at.
-     * @return bool
+     * @param mixed $log_in_code
+     * @return User
      */
-    public function activate()
+    public function setLogInCode($log_in_code)
     {
-        $this->setActivationHashActivatedAt(Application::appTimeStamp());
-        return $this->update([self::$tActivationHashActivatedAt]);
+        $this->log_in_code = $log_in_code;
+        return $this;
+    }
+    /**
+     * @return mixed
+     */
+    public function getLogInCodeEndsOn()
+    {
+        return $this->log_in_code_ends_on;
+    }
+    /**
+     * @param mixed $log_in_code_ends_on
+     * @return User
+     */
+    public function setLogInCodeEndsOn($log_in_code_ends_on)
+    {
+        $this->log_in_code_ends_on = $log_in_code_ends_on;
+        return $this;
     }
 
-    /**
-     * Check if password is same as one in database.
-     * @param $password
-     * @return bool
-     */
-    public function isPasswordCorrect($password)
-    {
-        return !strcmp($this->getPassword(),$password);
-    }
 
-    /**
-     * Check if user is blocked.
-     * User is blocked if he tries to login with wrong password too many time(depends on sys_conf).
-     * @return bool
-     */
-    public function isUserAccountBlocked()
-    {
-        return $this->getNumberOfWrongLogIn() >= Configuration::Instance()->getMaxLogin();
-    }
-
-    /**
-     * Check if user has activate account.
-     * User can activate account by clicking on link which he gets on mail upon registration.
-     * @return bool
-     */
-    public function isActivated()
-    {
-        return isset($this->activation_hash_activated_at) && $this->activation_hash_activated_at !== "";
-    }
-
-    /**
-     * If password isn't correct update wrong attempt.
-     * @return bool
-     */
-    public function wrongLogIn()
-    {
-        $foo = intval($this->getNumberOfWrongLogIn());
-        $this->setNumberOfWrongLogIn(++$foo);
-        return $this->update([self::$tNumberOfLogIns]);
-    }
 }

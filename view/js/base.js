@@ -74,6 +74,7 @@ function getXml(data,handler,url,method){
         }
     });
 }
+
 function isDataCorrect(){
     return !$('.error').length ;
 }
@@ -169,5 +170,60 @@ function onCookieButtonClick() {
     $("#terms-of-cookie").css("display","none");
 }
 
+function fillTable(tableId,xmlData) {
+    var body = $("table#"+tableId);
+    var page = parseInt(body[0].dataset.page);
+    if(page === -1){
+        var lastRow = $("tr:last").children().first();
+        var k = parseInt($(body).find("tr").last().children("td").first().text());
+    }else{
+        var k = (xmlData.length*(page-1));
+    }
 
+    $(xmlData).each(function (index,item) {
+        var row = "<tr>"+ '<td>'+(index+1+k)+'</td>';
+        $.each(this.attributes,function (i,attribute) {
+            var val = $(attribute).val().length ===0?"NULL":$(attribute).val();
+            row += "<td>"+val+"</td>";
+        })
+        row += "</tr>";
+        $(body).append(row);
+    });
+}
 
+function showLoading() {
+    var url = window.location.protocol+"//barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/view/asset/ic_loader.gif";
+    $("div.page").append('<div class="loading" style="opacity: 1">Dohvaćanje podataka<br><img src="'+url+'"></div>');
+    $("input").prop("disabled",true);
+    $(".content").css("opacity","0.5");
+}
+function hideLoading(timeout) {
+    timeout = defaultArg(timeout,2000)
+    setTimeout(hideLoad,timeout);
+
+}
+function hideLoad() {
+    $("input").prop("disabled",false);
+    $(".content").css("opacity","1");
+    $("div.loading").remove();
+}
+
+function showNotif(message) {
+    var url = window.location.protocol+"//barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/view/asset/ic_notif.png";
+    $("div.page").append('' +
+        '<div class="notif" style="opacity: 1">' +
+            '<div class="notif-title">' +
+                'Obavijest ' +
+                    '<img src="'+url+'" onclick="onHideNotifClick();">' +
+            '</div>' +
+            '<div class="notif-context">' +
+                message +
+            '</div>' +
+        '</div>');
+}
+function hideNotif() {
+    $("div.notif").remove();
+}
+function onHideNotifClick() {
+    hideNotif();
+}

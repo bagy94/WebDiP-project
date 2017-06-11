@@ -29,8 +29,7 @@ abstract class MetaModel
 
     public function connect($query="",$params=[]){
         $this->connection = new Db($query,$params);
-        $this->connection->connect();
-        return $this->connection;
+        return $this->connection->connect();
     }
 
     public function disconnect(){

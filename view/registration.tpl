@@ -2,7 +2,7 @@
     {if isset($errors)}
         <div class="has-error">
             {foreach from = $errors item=v}
-                {$v}
+                <div class="error">{$v}</div>
             {/foreach}
         </div>
     {/if}

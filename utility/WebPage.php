@@ -15,11 +15,9 @@ class WebPage
 {
     const HEADER_PATH = "view/sections/_header.tpl";
     const FOOTER_PATH = "view/sections/_footer.tpl";
-
     const VAR_TITLE = "title";
     const VAR_KEYWORDS = "keyword";
     const OBJ_SETTINGS = "ps";
-
     /***
      * Static instance of Smarty.
      * @var Smarty
@@ -43,7 +41,6 @@ class WebPage
      * @var PageSettings
      */
     private $settings;
-
     /**
      * WebPage constructor.
      * @param string|string[] $temp
@@ -51,15 +48,13 @@ class WebPage
      * @param string $keywords
      * @param PageSettings $settings
      */
-    public function __construct($temp, $title, $settings=NULL,$keywords=NULL)
+    public function __construct($temp, $title="", $settings=NULL,$keywords=NULL)
     {
         $this->title = $title;
         $this->keywords = $keywords;
         $this->settings = is_null($settings)?new PageSettings():$settings;
         $this->addTemp($temp);
     }
-
-
     /**
      * Assign value to template variable.
      * @param string $var
@@ -68,7 +63,6 @@ class WebPage
     function assign($var, $val){
         self::smarty()->assign($var,$val);
     }
-
     /**
      * Assign object to template variable.
      * @param string $var
@@ -77,8 +71,6 @@ class WebPage
     function assignObj($var, $obj){
         self::smarty()->registerObject($var,$obj);
     }
-
-
     /**
      * Returns static instance of smarty
      * @return Smarty
@@ -91,7 +83,6 @@ class WebPage
         }
         return self::$smarty;
     }
-
     /**
      * Initialize header and menu.
      * Warning: html and body tag are opened after init. Close with end() function
@@ -105,26 +96,21 @@ class WebPage
         self::smarty()->assignByRef(self::OBJ_SETTINGS,$this->settings);
         return self::smarty()->fetch(self::HEADER_PATH);
     }
-
     /**
      * Display _footer.tpl which close body and html tags
      */
     public function end(){
         return self::smarty()->fetch(self::FOOTER_PATH);
     }
-
-
     /***Display template specific for page.*/
     function displayContent($templateIndex)
     {
         $template = is_array($this->temp) && isset($this->temp[$templateIndex])?
             $this->temp[$templateIndex]:
             $this->temp;
-
-        return self::smarty()->fetch($template);
+        return self::smarty()->fetch("view/".$template);
         //self::smarty()->display(self::FOOTER_PATH);
     }
-
     /**
      * Initialize header and menu.
      * Display Content.
@@ -137,7 +123,6 @@ class WebPage
         $foo .= $this->end();
         print_r($foo);
     }
-
     /**
      * Assign assoc array of variables to template.
      * Key=>variable name in template
@@ -152,7 +137,6 @@ class WebPage
         }
         return TRUE;
     }
-
     /**
      * Add Template.
      * @param string $temp
@@ -173,7 +157,6 @@ class WebPage
             $this->temp = [$temp];
         }
     }
-
     /**
      * @param string $title
      * @return WebPage
@@ -183,7 +166,6 @@ class WebPage
         $this->title = $title;
         return $this;
     }
-
     /**
      * @param null|string $keywords
      * @return WebPage
@@ -193,14 +175,9 @@ class WebPage
         $this->keywords = $keywords;
         return $this;
     }
-
-
-
-
     public function appendLink($type,$link){
         $this->settings->add($type,$link);
     }
-
     /**
      * Setter PageSettings.
      * @param PageSettings $settings
@@ -209,7 +186,6 @@ class WebPage
     {
         $this->settings = $settings;
     }
-
     /**
      * @return PageSettings
      */
@@ -217,7 +193,6 @@ class WebPage
     {
         return $this->settings;
     }
-
     public function getHTML($templIndex=0){
         $foo = $this->init();
         $foo .= $this->displayContent($templIndex);
@@ -225,4 +200,8 @@ class WebPage
         return $foo;
     }
 
+    public function getSmarty()
+    {
+        return self::smarty();
+    }
 }

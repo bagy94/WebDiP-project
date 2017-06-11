@@ -8,16 +8,14 @@ var Clock = function(conta){
         var m = chTime(time.getMinutes());
         var s = chTime(time.getSeconds());
         $(cont).html(h+":"+m+":"+s);
-        setTimeout(start,600);
+        setTimeout(start,800);
     };
     this.setTime = function(){
       $.ajax({
-          url:window.location.protocol+"//barka.foi.hr/WebDiP/2015_projekti/WebDiP2015x003/utils/scriptConfiguration.php",
-          type: "GET",
-          data: {req:"timeintv"},
+          url:window.location.protocol+"//barka.foi.hr/WebDiP/2016_projekti/WebDiP2016x005/admin/service/interval",
           dataType:"xml",
           success: function(xml){
-              timeInterval =$(xml).children("configuration").children("timeintv").text();
+              timeInterval =$(xml).find("interval").text();
               create();
               start();
           }

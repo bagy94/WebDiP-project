@@ -1,6 +1,5 @@
         </div>
-<footer style="background-color: {$ps->theme.footer.background_color}">
-
+<footer>
 </footer>
 </body>
 </html>

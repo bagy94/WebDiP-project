@@ -4,6 +4,7 @@
 
 $(document).on("change","#selectCategory",function (event) {
     if($(this).val() !== "-1"){
+        showLoading();
         getXml(
             {"scid":$(this).val()},
             onServiceSuccess,
@@ -14,6 +15,7 @@ $(document).on("change","#selectCategory",function (event) {
 });
 
 function onServiceSuccess(data) {
+    hideLoading();
     var services = $(data).find("service");
     $(".box-service-list").remove();
     if(services.length === 0){

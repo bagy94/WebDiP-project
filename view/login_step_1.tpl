@@ -22,6 +22,9 @@
                 <p>Ne</p>
             </div>
         </div>
+        <div style="text-align: end">
+            <a href="{$lostPassword}">Zaboravljena lozinka</a>
+        </div>
         <div id="btnBoxLogIn">
             <input type="submit" id="btnSubmitLogIn" name="btnSubmitLogIn" value="Prijava">
         </div>

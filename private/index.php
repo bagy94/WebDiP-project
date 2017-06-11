@@ -29,12 +29,23 @@ spl_autoload_register(function ($class){
         require_once "../service/$className.php";
     }
 });
-
-use bagy94\utility\WebPage;
+use bagy94\controller\PrivateController;
 use bagy94\utility\Router;
-use bagy94\model\User;
-$router = new WebPage();
-$user = new User();
-$router->buildProjectRoot();
-$router->build();
-$loader = $router->buildLink("loader.php");
+if($_SERVER["HTTPS"] === 'on'){
+
+}
+
+$request = filter_input(INPUT_GET, Router::ROUTE,FILTER_SANITIZE_URL);
+$urlParts = explode("/",$request);
+$controller = new PrivateController();
+$action = $urlParts[0] !== ''?$urlParts[0]:"index";
+$args = count($urlParts)>1?array_slice($urlParts,1):NULL;
+//var_dump($action);
+if($controller->hasAction($action)){
+    $response = $controller->invokeAction($action,$args);
+    //var_dump($response);
+}else{
+    $response = $controller->error("Action not found");
+}
+//var_dump($response);
+$response->show();

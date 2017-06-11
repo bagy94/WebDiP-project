@@ -41,6 +41,15 @@ class Session
     function set($key,$val){
         $this->resume();
         $_SESSION[$key] = $val;
+        //echo $_SESSION[$key];
+    }
+
+    function free(){
+        session_name($this->SESSION_NAME);
+        if(!$this->isActive()){
+            session_start();
+        }
+        session_unset();
     }
     static function get($key){
         return isset($_SESSION[$key])?$_SESSION[$key]:NULL;
@@ -64,7 +73,6 @@ class Session
 
     public function resume()
     {
-        session_name($this->SESSION_NAME);
         if(!$this->isActive()){
             session_start();
         }

@@ -80,11 +80,11 @@ class RegistrationController extends Controller
         $this->initFiles();
 
         Log::write(self::VISIT_REGISTRATION,"Pregled stranice registracija/index");
-        return $this->render($this->pageAdapter->getHTML());
+        return $this->build()->render();
 
     }
     function service($args=NULL){
-        $xmlRoot = new SimpleXMLElement("<service/>");
+        $this->setResponseType(Response::RESPONSE_XML);
         $action = isset($args[0])?$args[0]:"";
         switch ($action){
             case "username":
@@ -97,25 +97,21 @@ class RegistrationController extends Controller
                 $exist = "-2";
         }
         if(!$exist){
-            $xmlRoot->addAttribute("success",1);
-            $xmlRoot->addAttribute("exist",0);
-            $xmlRoot->addAttribute("message","Korisnik ne postoji");
+            $this->response->addAttribute("success",1);
+            $this->response->addAttribute("exist",0);
+            $this->response->addAttribute("message","Korisnik ne postoji");
         }else if($exist < "0"){
-            $xmlRoot->addAttribute("success",0);
-            $xmlRoot->addAttribute("message","Krivo uneseni podatak");
+            $this->response->addAttribute("success",0);
+            $this->response->addAttribute("message","Krivo uneseni podatak");
         }else{
-            $xmlRoot->addAttribute("success",1);
-            $xmlRoot->addAttribute("exist",1);
-            $xmlRoot->addAttribute("message","Korisnik već postoji");
+            $this->response->addAttribute("success",1);
+            $this->response->addAttribute("exist",1);
+            $this->response->addAttribute("message","Korisnik već postoji");
         }
-        return $this->render($xmlRoot,Response::RESPONSE_XML);
+        return $this->render();
     }
 
     function submit(){
-        if(!$this->recaptchaCheck()){
-            $this->formHasErrors = ["Recaptcha nije unesena"];
-            return $this->selfInvoke("index");
-        }
         //var_dump($_POST);
         //var_dump($_GET);
         $this->user = new User();
@@ -132,7 +128,11 @@ class RegistrationController extends Controller
             Log::write(self::ACTION_REGISTR_UNSUCCESS,"Neuspiješna registracija/".$this->user->getUserName(),$this->user->getUserId());
             $this->formHasErrors = $this->user->getErrors();
             return $this->index();
-        }else{
+        }else if(!$this->recaptchaCheck()){
+            $this->formHasErrors = ["Recaptcha nije unesena"];
+            return $this->selfInvoke("index");
+        }
+        else{
             if($this->user->registration()){
                 Log::write(self::ACTION_REGISTR_SUCCES,"Registracija/".$this->user->getUserName(),$this->user->getUserId());
 
@@ -167,21 +167,21 @@ class RegistrationController extends Controller
                         Log::write(self::SYSTEM_ERROR_QUERY,"Greška prilikom kreiranja novog linka za aktivaciju",$user->getUserId());
                     }
                     Log::write(self::ACTION_ACTIVATION_UNSUCCESS,"Aktivacijski link istekao",$user->getUserId());
-                    return $this->render($this->pageAdapter->getHTML(1));
+                    return $this->build(1)->render();
                 }else{
                     $user->activate();
                     Log::write(self::ACTION_ACTIVATION_SUCCESS,"Korisnički račun aktivan",$user->getUserId());
                     setcookie("master_cookie","accepted",time()+(86400 * 30),"/");
-                    return $this->render($this->pageAdapter->getHTML(1));
+                    return $this->build(1)->render();
                 }
             }else{
                 $this->pageAdapter->assign("error","Aktivacijski link ne postoji ili je obnovljen");
                 Log::action(self::ACTION_ACTIVATION_UNSUCCESS,"Aktivacijski link ne postoji u bazi:[$act]");
-                return $this->render($this->pageAdapter->getHTML(1));
+                return $this->build(1)->render();
             }
         }
         $this->pageAdapter->assign("error","Neispravan aktivacijski link");
-        return $this->render($this->pageAdapter->getHTML(1));
+        return $this->build(1)->render();
     }
 
 

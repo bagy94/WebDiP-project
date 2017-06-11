@@ -26,12 +26,14 @@ class Router
     function buildProjectRoot(){
         $urlArrray = explode("/",$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"]);
         $this->reqParts = array_slice($urlArrray, 0, array_search(self::DIR_ROOT, $urlArrray, true) +1);
-        return $this->reqParts;
+        $this->build();
+        return $this;
     }
 
     public function build()
     {
         $this->path = implode("/",$this->reqParts);
+        return $this;
     }
 
     public function buildRoot($HTTPS=FALSE)
@@ -39,6 +41,7 @@ class Router
         if(is_null($this->path)){
             $this->build();
         }
+        //var_dump($this->path);
         return $HTTPS?
             sprintf("https://%s/", $this->path):
             sprintf("http://%s/", $this->path);
@@ -59,7 +62,9 @@ class Router
         if(isset($args)){
             array_push($path,$args);
         }
-        return $HTTPS? $this->buildLink(sprintf("?%s",http_build_query([self::ROUTE=>implode("/",$path)])),$HTTPS):
+        //$url = sprintf("?%s=%s",self::ROUTE,implode("/",$path));
+        //echo $url;
+        return $HTTPS? $this->buildLink(sprintf("?%s=%s",self::ROUTE,implode("/",$path)),$HTTPS):
             $this->buildLink(sprintf("%s", implode("/",$path)), $HTTPS);
         /*return $HTTPS?
             $this->buildLink(
@@ -163,7 +168,34 @@ class Router
         return $this->buildRoot();
     }
 
-    public static function splitArgs($args){
-        return array_chunk($args,2);
+    public static function splitArgs($args,$askeys=TRUE){
+        return array_chunk($args,2,$askeys);
     }
+
+    public static function templateDir()
+    {
+        return self::Instance()->buildLink("view");
+    }
+    public static function compileDir(){
+        return self::Instance()->buildLink("templates_c");
+    }
+
+    public static function unforceHTTPS($controller,$action=NULL,$getParams = NULL)
+    {
+        if( isset($_SERVER["HTTPS"])){
+            $url =self::make($controller,$action,$getParams,FALsE);
+            //echo $url;
+            header("Location: $url");
+            exit();
+        }
+    }
+
+    public static function retrieveJsonPostData()
+    {
+        // get the raw POST data
+        $rawData = file_get_contents("php://input");
+        // this returns null if not valid json
+        return json_decode($rawData);
+    }
+
 }

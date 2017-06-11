@@ -55,7 +55,7 @@ class Response
         print_r($this->content->asXML());
     }
     public function asJSON(){
-        header("Content-type: application/json");
+       header("Content-type: application/json");
         print_r($this->content);
     }
     public function show(){

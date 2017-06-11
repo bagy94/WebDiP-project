@@ -46,6 +46,10 @@ class Configuration extends Model
         parent::__construct(self::$ID, $data);
     }
 
+    /**
+     * Singleton object.
+     * @return Configuration|null
+     */
     public static function Instance()
     {
         if(self::$_instance === NULL){
@@ -53,12 +57,15 @@ class Configuration extends Model
         }
         return self::$_instance;
     }
+
+
     function interval(){
         return $this->interval;
     }
 
     /**
-     * Return real time end.
+     * Cookie duration can be set(in hours) by administrator.
+     * It converts it from hours to seconds and add it to current time.
      * @return int
      */
     public function getCookieEndTime()
@@ -67,6 +74,8 @@ class Configuration extends Model
     }
 
     /**
+     * Virtual time.
+     * Application current timestamp.
      * @return false|int
      */
     function currentTimestamp(){
@@ -74,6 +83,8 @@ class Configuration extends Model
     }
 
     /**
+     * Session duration in virtual time.
+     * It converts it in seconds.
      * @param int $timeType
      * @return false|int
      */
@@ -90,6 +101,12 @@ class Configuration extends Model
         }
     }
 
+    /**
+     * Return session duration in seconds.
+     * It can be changed by admin.
+     * @param int $timeType
+     * @return int
+     */
     function sessionRealTimeDuration($timeType = self::TIME_TYPE_HOURS){
         settype($this->real_time_session_end,"int");
         switch ($timeType){
@@ -103,6 +120,21 @@ class Configuration extends Model
     }
 
 
+    /**
+     * Return virtual time timestamp for log in codes duration. It read it from db as minutes
+     * @return false|int
+     */
+    public function logInCodeEndsOn()
+    {
+        return strtotime("$this->login_code_duration minutes",$this->currentTimestamp());
+    }
+
+    public function getNewIntervalFromService($update=TRUE)
+    {
+        $xml = simplexml_load_file("http://barka.foi.hr/WebDiP/pomak_vremena/pomak.php?format=xml");
+        $this->interval = $xml->children()->children()->children()->brojSati[0];
+        return $update?$this->update([self::$tInterval]):$this->interval;
+    }
 
 
 
@@ -110,10 +142,9 @@ class Configuration extends Model
 
 
 
-
-
-
-
+    /***
+     * Getters and setters.
+     */
 
     /**
      * @return mixed
@@ -122,7 +153,6 @@ class Configuration extends Model
     {
         return $this->id;
     }
-
     /**
      * @param mixed $id
      * @return Configuration
@@ -132,7 +162,6 @@ class Configuration extends Model
         $this->id = $id;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -140,7 +169,6 @@ class Configuration extends Model
     {
         return $this->interval;
     }
-
     /**
      * @param mixed $interval
      * @return Configuration
@@ -150,7 +178,6 @@ class Configuration extends Model
         $this->interval = $interval;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -158,7 +185,6 @@ class Configuration extends Model
     {
         return $this->activation_link_duration;
     }
-
     /**
      * @param mixed $activation_link_duration
      * @return Configuration
@@ -168,7 +194,6 @@ class Configuration extends Model
         $this->activation_link_duration = $activation_link_duration;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -176,7 +201,6 @@ class Configuration extends Model
     {
         return $this->no_rows;
     }
-
     /**
      * @param mixed $no_rows
      * @return Configuration
@@ -186,7 +210,6 @@ class Configuration extends Model
         $this->no_rows = $no_rows;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -194,7 +217,6 @@ class Configuration extends Model
     {
         return $this->max_login;
     }
-
     /**
      * @param mixed $max_login
      * @return Configuration
@@ -204,7 +226,6 @@ class Configuration extends Model
         $this->max_login = $max_login;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -212,7 +233,6 @@ class Configuration extends Model
     {
         return $this->cookie_duration;
     }
-
     /**
      * @param mixed $cookie_duration
      * @return Configuration
@@ -222,7 +242,6 @@ class Configuration extends Model
         $this->cookie_duration = $cookie_duration;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -230,7 +249,6 @@ class Configuration extends Model
     {
         return $this->session_duration;
     }
-
     /**
      * @param mixed $session_duration
      * @return Configuration
@@ -240,7 +258,6 @@ class Configuration extends Model
         $this->session_duration = $session_duration;
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -248,7 +265,6 @@ class Configuration extends Model
     {
         return $this->login_code_duration;
     }
-
     /**
      * @param mixed $login_code_duration
      * @return Configuration
@@ -258,7 +274,6 @@ class Configuration extends Model
         $this->login_code_duration = $login_code_duration;
         return $this;
     }
-
     /**
      * @return int
      */

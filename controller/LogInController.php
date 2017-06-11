@@ -71,7 +71,7 @@ class LogInController extends Controller
         }
         $this->pageAdapter->assign("lostPassword",Router::make("login","lost_password"));
         Log::write(self::VISIT_INDEX_FIRST_STEP,"Pregled stranice prijava");
-        return $this->render($this->pageAdapter->getHTML(0));
+        return $this->build()->render();
     }
 
     /**
@@ -214,7 +214,7 @@ class LogInController extends Controller
         $this->pageAdapter->assign(self::VAR_VIEW_ACTION_SUBMIT_2, $this->formAction(5));
         $uid = isset($this->user)?$this->user->getUserId():NULL;
         Log::write(self::VISIT_INDEX_SECOND_STEP,"Unos koda za prijavu",$uid);
-        return $this->render($this->pageAdapter->getHTML(1));
+        return $this->build(1)->render();
     }
 
     /**
