@@ -1,0 +1,21 @@
+.search-box{
+    text-align: start;
+    margin: 5px;
+    /* background-color: #7f4cad; */
+    /* width: 50%; */
+    float: right;
+    display: inline-block;
+    border-bottom: 1px solid rgba(146, 131, 131, 0.85);
+}
+.search-box>*{
+    display: inline-block;
+}
+.search-box>input{
+    float: right;
+    display: inline-block;
+    max-width: 45%;
+}
+.search-box>select{
+    margin: 2px;
+    font-size: medium;
+}

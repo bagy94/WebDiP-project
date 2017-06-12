@@ -22,7 +22,7 @@ class Db
     private static $GET_LOGS = "SELECT * FROM `log` ";
 
 
-    private static $UPDATE = "UPDATE %s SET %s WHERE %s";
+    private static $UPDATE = "UPDATE %s SET %s WHERE ";
     private static $INSERT = "INSERT INTO %s VALUES (%s)";
     private static $INSERT_COLUMN = "INSERT INTO %s(%s) VALUES (%s)";
     private static $SELECT = "SELECT %s FROM %s";
@@ -241,7 +241,8 @@ class Db
             implode(",",$this->columns),
             implode($constraintGlue,$this->constraints)
         ));
-        //print $this->query;
+        var_dump($this->query);
+        var_dump($this->queryParams);
         return $this;
     }
 
@@ -304,6 +305,7 @@ class Db
 
     public function prepareColumns($columns=[])
     {
+
         foreach ($columns as $column=>$columnValue){
             $param = ":var_$column";
             $foo = "`$column`= $param";
@@ -313,38 +315,76 @@ class Db
         return $this;
     }
 
-    public function where($constraints=[],$glue= "AND"){
+    public function Insert($table,$columns=[])
+    {
+        $this->query = "INSERT INTO $table(";
+        $c = count(array_keys($columns));
+        foreach ($columns as $column=>$value){
+            $param = ":var_$column";
+            $this->query .="`$column`";
+            $this->queryParams[$param] = $value;
+            if(--$c)$this->query .=", ";
+        }
+        $this->query = ") VALUES (".implode(",",array_keys($this->queryParams)).")";
+        return $this;
+    }
+
+    public function Select($tables=[],$columns=NULL){
+        $col = isset($columns) && is_array($columns)?implode(",",$columns):"*";
+        $tab = isset($tables) && count($tables)?implode(",",$tables):$tables;
+        $this->query = sprintf(self::$SELECT,$col,$tab);
+        return $this;
+    }
+    public function Update($table,$columns=[]){
+        $table = is_array($table)?implode(",",$table):$table;
+        $c = count($columns);
+        $this->query = "UPDATE $table SET ";
+        foreach ($columns as $column=>$value){
+            $param = ":var_$column";
+            $this->queryParams[$param]=$value;
+            $this->query .= "`$column`= $param";
+            if(--$c)$this->query .= ", ";
+        }
+        return $this;
+    }
+
+    public function Where($constraints=[],$glue= "AND"){
+        $this->query .= " WHERE ";
         if (isset($constraints) && is_array($constraints)){
-            $last = end($constraints);
-            reset($constraints);
+            $c = count($constraints);
             foreach ($constraints as $constraint=>$value){
                 $param = ":var_$constraint";
                 $this->queryParams[$param]=$value;
                 $this->query .= "`$constraint`= $param";
-                if($last !== $value)$this->query .= " $glue ";
+                if(--$c)$this->query .= " $glue ";
             }
         }
+        return $this;
     }
 
-    public function like($columns=[],$glue="OR"){
-        $last = end($columns);
-        reset($columns);
+    public function Like($columns=NULL,$glue="OR"){
+        if(!isset($columns))return $this;
+        $c = count($columns);
+        //var_dump($columns);
         foreach ($columns as $column=>$value){
             $param = ":var_$column";
             $this->queryParams[$param] = "%$value%";
             $this->query .= "`$column` LIKE ($param)";
-            if($value !== $last)$this->query .=" $glue ";
+            if(--$c)$this->query .=" $glue ";
         }
+        //var_dump($this->query);
         return $this;
     }
-    public function limit($start=0,$stop=50){
-        $this->query .= " LIMIT $start,$stop ";
+    public function Limit($start=0,$stop=50){
+        $this->query .= " LIMIT $start,$stop";
         return $this;
     }
-    public function sort($column = 1,$desc=FALSE){
+    public function Sort($column = 1,$desc=FALSE){
         $this->query .= " ORDER BY $column";
         if($desc){
             $this->query .= " DESC";
+        }else{
+            $this->query .= " ASC";
         }
         return $this;
     }

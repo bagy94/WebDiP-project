@@ -1,6 +1,19 @@
 <section class="content">
     <section class="content">
-        <table id="tableUserControl" class="table" data-page="1">
+        <div class="box search-box">
+            <label for="selectColumn">
+                Pretraži:
+            </label>
+            <select id="selectColumn">
+                <option id="-1">Stupac</option>
+                <option id="1">Akcija</option>
+                <option id="2">Kategorija</option>
+                <option id="3">Korisnik</option>
+                <option id="4">Vrijeme</option>
+            </select>
+            <input type="text" id="inputSrch" name="q" placeholder="Pretraži" disabled>
+        </div>
+        <table id="tableLog" class="table" data-page="1">
             <thead>
             <tr>
                 <th class="small-cell">
@@ -12,10 +25,10 @@
                 <th>
                     Kategorija
                 </th>
-                <th name="cell-user">
+                <th class="small-cell">
                     Korisnik
                 </th>
-                <th name="cell-context">
+                <th class="medium-cell">
                     Sadržaj
                 </th>
                 <th>

@@ -62,14 +62,18 @@ abstract class Model extends MetaModel implements IModel
      * @return bool
      */
     protected function init(){
-        $query = $this::$QUERY_INIT_BY_ID;
-        //print $query;
-        $id = $this->{self::$tId};
-        if($this->connect($query,[$id])->prepare()->runQuery()){
+
+        if($this->connect()
+            ->Select([self::$t])
+            ->Where([self::$tId=>$this->{self::$tId}])
+            ->prepare()->runQuery())
+        {
             $data = $this->connection->getStm()->fetch(\PDO::FETCH_ASSOC);
             $this->initData($data);
         }
+        //var_dump($this->getConnection()->getQuery());
         $this->connection->disconnect();
+
         return isset($data);
     }
 
@@ -96,15 +100,9 @@ abstract class Model extends MetaModel implements IModel
         if( !(is_array($columns) && count($columns))){
             $columns = $this::getColumns();
         }
-        $this->connect();
-        foreach ($columns as $column){
-            $foo[$column] = $this->{$column};
-        }
-
-        return $this->getConnection()
-            ->makeUpdate($this::$t,$foo,[$this::$tId=>$this->{$this::$tId}])
-            ->prepare()
-            ->runQuery();
+        return $this->connect()
+            ->Update($this::$t,$this->data($columns))->Where([$this::$tId=>$this->{$this::$tId}])
+            ->prepare()->runQuery();
 
 
 
@@ -120,6 +118,13 @@ abstract class Model extends MetaModel implements IModel
         foreach ($constraintArray as $column){
 
         }*/
+    }
+    protected function data($columns=[]){
+        $foo = [];
+        foreach ($columns as $column){
+            $foo[$column] = $this->$column;
+        }
+        return $foo;
     }
 
     protected function columnsToConstraints($columns=[]){
@@ -241,18 +246,20 @@ abstract class Model extends MetaModel implements IModel
         return $stm;
     }
 
-    public static function search($value,$constraintColumn,$options="")
+    public static function search($value,$constraintColumn=[],$options="")
     {
         $class = get_called_class();
         $table = $class::$t;
         $db = new Db(trim(Db::makeQuery("SELECT",[$table],NULL,"")));
-        $db->like([$constraintColumn=>$value]);
+        foreach ($constraintColumn as $column){
+            $columns[$column]=$value;
+        }
+        $db->Like($columns);
         $objects = $db->prepare()->runQuery() ?$db->getStm()->fetchAll(\PDO::FETCH_CLASS,$class):NULL;
         //var_dump($objects);
         $db->disconnect();
         return $objects;
     }
-
 
 
     public function test(){print_r($this->{self::$tId});}

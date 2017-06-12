@@ -8,13 +8,6 @@ $(document).ready(function () {
     showLoading();
 });
 
-$(document).on("keyup","#inputSearch",function () {
-    var value = $(this).val();
-    if(!(value === "" || value.length < 4)){
-        alert(value);
-    }
-});
-
 
 
 
@@ -22,15 +15,18 @@ function onUsersRetrieve(response) {
     var users = $(response).find("user");
 
     var passwdIndex = $("th.password").index();
-    $("tbody").children().remove();
-    fillTable("tableUserControl",users);
+    if(users.length >0) {
+        fillTable("tableUserControl",users);
+    }
+    else{
+        $(".table")[0].dataset.page = "-1";
+    }
 
-    $("tr").each(function (index,row) {
+    $("tbody>tr").each(function (index,row) {
         var lockedCell = $(row).children("td").last();
         if($(".sort").length > 0){
             var si = $(".sort").index();
             $(row).children().eq(si).addClass("sort");
-            var foo = $(row).children();
         }
         if($(lockedCell).html() === "1"){
             changeStatus(1,row)
@@ -79,7 +75,7 @@ $(document).on("click","input[name='navbutton']",function () {
 
 $(document).on("dblclick","th",function (event) {
     var index = $(this).index();
-    var p = $("table").data("page");
+    var p = $("table")[0].dataset.page;
     $(".sort").removeClass("sort");
     $(this).addClass("sort");
     getPrivateXml({page:p,sort:index},onUsersRetrieve,"users","GET");

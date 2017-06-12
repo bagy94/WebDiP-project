@@ -174,12 +174,12 @@ function fillTable(tableId,xmlData) {
     var body = $("table#"+tableId);
     var page = parseInt(body[0].dataset.page);
     if(page === -1){
-        var lastRow = $("tr:last").children().first();
-        var k = parseInt($(body).find("tr").last().children("td").first().text());
+        var k = 0
     }else{
-        var k = (xmlData.length*(page-1));
+        var c =  $(body).find("tbody").children().length;
+        var k = (c*(page-1));
     }
-
+    var rows = $(body).find("tbody").children().remove();
     $(xmlData).each(function (index,item) {
         var row = "<tr>"+ '<td>'+(index+1+k)+'</td>';
         $.each(this.attributes,function (i,attribute) {

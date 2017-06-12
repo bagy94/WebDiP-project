@@ -10,12 +10,18 @@ namespace bagy94\controller;
 
 
 use bagy94\model\Configuration;
+use bagy94\model\Log;
+use bagy94\model\LogAction;
+use bagy94\model\LogActionCategory;
+use bagy94\utility\db\Db;
 use bagy94\utility\Response;
 use bagy94\utility\UserSession;
 
-class AdminController extends Controller
+class AdminController extends TableController
 {
-
+    //LOG ACTIONS
+    const ACTION_VIEW_SYSTEM_CONFIG = 26;
+    const ACTION_UPDATE_CONFIG = 27;
 
     //CONFIG
     const SERVICE_INTERVAL = "interval";
@@ -25,6 +31,7 @@ class AdminController extends Controller
     const ARG_POST_MAXIMUM_LOG_INS = "max_log_in";
     const ARG_POST_SESSION_DURATION = "session_duration";
     const ARG_POST_COOKIE_DURATION = "cookie_duration";
+
 
     public static $KEY = "admin";
 
@@ -37,6 +44,8 @@ class AdminController extends Controller
 
     //LOG
     const SERVICE_LOG = "log";
+    const SERVICE_LOG_ACTION_SEARCH = "q";
+    const SERVICE_LOG_ACTION_SEARCH_COLUMN = "col";
 
     function __construct()
     {
@@ -76,7 +85,7 @@ class AdminController extends Controller
             self::ARG_POST_SESSION_DURATION=>$this->conf->getSessionDuration(),
             self::ARG_POST_COOKIE_DURATION=>$this->conf->getCookieDuration()
         ]);
-
+        Log::write(self::ACTION_VIEW_SYSTEM_CONFIG,"Postavke sustava");
         return $this->render($this->pageAdapter->getHTML(1));
 
     }
@@ -90,6 +99,9 @@ class AdminController extends Controller
      */
     public function service($args=NULL)
     {
+        if(!UserSession::isAdmin()){
+            return $this->failedService("You have no permission");
+        }
         $this->setResponseType(Response::RESPONSE_XML);
         if(isset($args[0])){
             $req = filter_var($args[0],FILTER_SANITIZE_STRING);
@@ -130,7 +142,7 @@ class AdminController extends Controller
 
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
-            $this->response->addAttribute(self::TAG_SUCCESS,"No service found");
+            $this->response->addAttribute(self::TAG_MESSAGE,"No service found");
         }
         return $this->render();
 
@@ -152,7 +164,7 @@ class AdminController extends Controller
                 );
             //TODO : Update doesnt work
             $this->response->addChild(self::ARG_POST_MAXIMUM_ROWS,$this->conf->getNoRows());
-
+            Log::write(self::ACTION_UPDATE_CONFIG,"Maximum redaka u tablici");
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
             $this->response->addAttribute(self::TAG_MESSAGE,"Neispravan parametar");
@@ -166,8 +178,7 @@ class AdminController extends Controller
 
             //TODO : Update doesnt work
             $this->response->addChild(self::ARG_POST_MAXIMUM_LOG_INS,$this->conf->getMaxLogin());
-
-            //TODO: Log
+            Log::write(self::ACTION_UPDATE_CONFIG,"Maximalan broj pokušaja logiranja");
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
             $this->response->addAttribute(self::TAG_MESSAGE,"Neispravan parametar");
@@ -179,6 +190,7 @@ class AdminController extends Controller
         if($value){
             $this->response->addAttribute(self::TAG_SUCCESS,$this->conf->setSessionDuration($value)->update([Configuration::$tSessionDuration]));
             $this->response->addChild(self::ARG_POST_SESSION_DURATION,$this->conf->getSessionDuration());
+            Log::write(self::ACTION_UPDATE_CONFIG,"Trajanje aktivnosti unutar sessije");
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
             $this->response->addAttribute(self::TAG_MESSAGE,"Neispravan parametar");
@@ -190,6 +202,7 @@ class AdminController extends Controller
         if($value){
             $this->response->addAttribute(self::TAG_SUCCESS,$this->conf->setActivationLinkDuration($value)->update([Configuration::$tActivationLinkDuration]));
             $this->response->addChild(self::ARG_POST_ACTIVATION_LINK_DURATION,$this->conf->getActivationLinkDuration());
+            Log::write(self::ACTION_UPDATE_CONFIG,"Trajanje aktivacijskog linka");
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
             $this->response->addAttribute(self::TAG_MESSAGE,"Neispravan parametar");
@@ -201,6 +214,7 @@ class AdminController extends Controller
         if($value){
             $this->response->addAttribute(self::TAG_SUCCESS,$this->conf->setLoginCodeDuration($value)->update([Configuration::$tLogInCodeDuration]));
             $this->response->addChild(self::ARG_POST_LOG_IN_CODE_DURATION,$this->conf->getLoginCodeDuration());
+            Log::write(self::ACTION_UPDATE_CONFIG,"Trajanje koda za prijavu");
         }else{
             $this->response->addAttribute(self::TAG_SUCCESS,0);
             $this->response->addAttribute(self::TAG_MESSAGE,"Neispravan parametar");
@@ -213,18 +227,55 @@ class AdminController extends Controller
         if(!UserSession::isAdmin()){
             self::redirect("home");
         }
-        $this->loadFiles();
+        $this->pageAdapter->getSettings()->addJsLocal("admin_log");
+        $this->pageAdapter->getSettings()->addCssLocal("admin_log");
         $this->pageAdapter->getSettings()->addCssLocal("table");
 
         return $this->build(2)->render();
     }
     //SERVICES
     private function logService($args = NULL){
-        if(!is_null($args)){
-
-        }else{
-
+        $search = filter_input(INPUT_POST,self::SERVICE_LOG_ACTION_SEARCH,FILTER_SANITIZE_STRING);
+        $columnSearch = filter_input(INPUT_POST,self::SERVICE_LOG_ACTION_SEARCH_COLUMN,FILTER_SANITIZE_NUMBER_INT);
+        $column = NULL;
+        if($search && $columnSearch && $columnSearch > "0" && $columnSearch <="5"){
+            switch ($columnSearch){
+                case "1":
+                    $column = Log::$tViewAction;
+                    break;
+                case "2":
+                    $column = Log::$tViewCategory;
+                    break;
+                case "3":
+                    $column = Log::$tUserCreatedId;
+                    break;
+                case "4":
+                    $column =Log::$tCreatedAt;
+                    break;
+            }
         }
+        if(isset($args[0])){
+            if (is_numeric($args[0])){
+                $this->page = (int)filter_var($args[0],FILTER_SANITIZE_NUMBER_INT);
+            }
+        }
+        $sort = filter_input(INPUT_POST,self::ARG_SORT,FILTER_SANITIZE_STRING);
+        if($sort){
+            $this->sort = (int)$sort;
+        }
+        if($this->getPage() === -1){
+            $data = Log::getAdminView($search,$column,$this->maxRows,$this->page,$this->sort);
+        }else{
+            $data = Log::getAdminView($search,$column,$this->maxRows,$this->getOffset(),$this->sort);
+        }
+        foreach ($data as $log){
+            $child = $this->response->addChild("log");
+            $log->toXML($child, [Log::$tViewAction,Log::$tViewCategory,Log::$tUserCreatedId,Log::$tContent,Log::$tCreatedAt]);
+        }
+
+    }
+    private function logServiceSearch($search,$column){
+
     }
 
 
@@ -235,17 +286,10 @@ class AdminController extends Controller
         if(!UserSession::isAdmin()){
             self::redirect("home");
         }
-        $this->loadFiles();
 
 
 
         return $this->build(3)->render();
-    }
-
-
-    private function loadFiles(){
-        $this->pageAdapter->getSettings()->addJsLocal("admin");
-        $this->pageAdapter->getSettings()->addCssLocal("admin");
     }
 
     /**
@@ -254,7 +298,7 @@ class AdminController extends Controller
      */
     protected function filterPost($varName)
     {
-        return parent::filterPost($varName, NULL, FILTER_SANITIZE_NUMBER_INT); // TODO: Change the autogenerated stub
+        return parent::filterPost($varName,NULL, FILTER_SANITIZE_NUMBER_INT); // TODO: Change the autogenerated stub
     }
 
     /**
